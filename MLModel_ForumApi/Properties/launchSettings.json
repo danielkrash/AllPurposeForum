@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "MLModel_ForumApi": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:55613;http://localhost:55613"
+    }
+  }
+}

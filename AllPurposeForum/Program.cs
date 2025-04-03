@@ -1,6 +1,5 @@
 using AllPurposeForum.Data;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,15 +13,6 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
-
-builder.WebHost.ConfigureKestrel((context, options) =>
-{
-    options.ListenAnyIP(7128, listenOptions =>
-    {
-        listenOptions.Protocols = HttpProtocols.Http1AndHttp2AndHttp3;
-        listenOptions.UseHttps();
-    });
-});
 
 var app = builder.Build();
 

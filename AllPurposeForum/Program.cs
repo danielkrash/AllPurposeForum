@@ -7,7 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Scalar.AspNetCore;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc.Authorization; // Add this line
+using Microsoft.AspNetCore.Mvc.Authorization;
+using AllPurposeForum.Services;
+using AllPurposeForum.Services.Implementation; // Add this line
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +20,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddAuthorization();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -39,8 +42,23 @@ builder.WebHost.ConfigureKestrel((context, options) =>
     });
 });
 
+builder.Services.AddRouting(options =>
+{
+    options.LowercaseUrls = true;
+});
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Servers.Where(s => s.Url == "https://[::]:7128").ToList().ForEach(s =>
+        {
+            s.Url = "https://localhost:7128";
+        });
+        return Task.CompletedTask;
+    });
+});
 
 var app = builder.Build();
 
@@ -49,11 +67,15 @@ if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
     app.MapOpenApi();
-    app.MapScalarApiReference();
-    app.UseSwaggerUI(options =>
+    app.MapScalarApiReference(options =>
     {
-        options.SwaggerEndpoint("/openapi/v1.json", "v1");
+        options.BaseServerUrl = "https://localhost:7128";
     });
+    //app.UseSwaggerUI(options =>
+    //{
+    //    options.SwaggerEndpoint("/openapi/v1.json", "v1");
+    //    options.
+    //});
 }
 else
 {

@@ -9,7 +9,9 @@ using Scalar.AspNetCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using AllPurposeForum.Services;
-using AllPurposeForum.Services.Implementation; // Add this line
+using AllPurposeForum.Services.Implementation;
+using Microsoft.AspNetCore.Mvc.Razor;
+using AllPurposeForum.Helpers; // Add this line
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,7 +33,15 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.Requ
 //                     .Build();
 //    config.Filters.Add(new AuthorizeFilter(policy));
 //});
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(option =>
+{
+    
+});
+
+builder.Services.Configure<RazorViewEngineOptions>(options =>
+{
+    options.ViewLocationExpanders.Add(new CustomViewLocationExpander());
+});
 
 builder.WebHost.ConfigureKestrel((context, options) =>
 {

@@ -16,12 +16,12 @@ namespace AllPurposeForum
         public class ModelInput
         {
             [LoadColumn(0)]
-            [ColumnName(@"col0")]
-            public string Col0 { get; set; }
+            [ColumnName(@"Sentiment")]
+            public string Sentiment { get; set; }
 
             [LoadColumn(1)]
-            [ColumnName(@"col1")]
-            public float Col1 { get; set; }
+            [ColumnName(@"PredictedLable")]
+            public float PredictedLable { get; set; }
 
         }
 
@@ -33,11 +33,11 @@ namespace AllPurposeForum
         #region model output class
         public class ModelOutput
         {
-            [ColumnName(@"col0")]
-            public string Col0 { get; set; }
+            [ColumnName(@"Sentiment")]
+            public string Sentiment { get; set; }
 
-            [ColumnName(@"col1")]
-            public uint Col1 { get; set; }
+            [ColumnName(@"PredictedLable")]
+            public uint PredictedLable { get; set; }
 
             [ColumnName(@"PredictedLabel")]
             public float PredictedLabel { get; set; }
@@ -106,10 +106,10 @@ namespace AllPurposeForum
         {
             var schema = PredictEngine.Value.OutputSchema;
 
-            var labelColumn = schema.GetColumnOrNull("col1");
+            var labelColumn = schema.GetColumnOrNull("PredictedLable");
             if (labelColumn == null)
             {
-                throw new Exception("col1 column not found. Make sure the name searched for matches the name in the schema.");
+                throw new Exception("PredictedLable column not found. Make sure the name searched for matches the name in the schema.");
             }
 
             // Key values contains an ordered array of the possible labels. This allows us to map the results to the correct label value.

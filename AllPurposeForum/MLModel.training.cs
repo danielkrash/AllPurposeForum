@@ -16,7 +16,7 @@ namespace AllPurposeForum
     {
         public const string RetrainFilePath =  @"C:\Users\danik\source\repos\AllPurposeForum\AllPurposeForum\sentence_cvs\imdb_labelled.txt";
         public const char RetrainSeparatorChar = '	';
-        public const bool RetrainHasHeader =  false;
+        public const bool RetrainHasHeader =  true;
         public const bool RetrainAllowQuoting =  false;
 
          /// <summary>
@@ -90,8 +90,8 @@ namespace AllPurposeForum
         public static IEstimator<ITransformer> BuildPipeline(MLContext mlContext)
         {
             // Data process configuration with pipeline data transformations
-            var pipeline = mlContext.Transforms.Conversion.MapValueToKey(outputColumnName:@"col1",inputColumnName:@"col1",addKeyValueAnnotationsAsText:false)      
-                                    .Append(mlContext.MulticlassClassification.Trainers.TextClassification(labelColumnName: @"col1", sentence1ColumnName: @"col0"))      
+            var pipeline = mlContext.Transforms.Conversion.MapValueToKey(outputColumnName:@"PredictedLable",inputColumnName:@"PredictedLable",addKeyValueAnnotationsAsText:false)      
+                                    .Append(mlContext.MulticlassClassification.Trainers.TextClassification(labelColumnName: @"PredictedLable", sentence1ColumnName: @"Sentiment"))      
                                     .Append(mlContext.Transforms.Conversion.MapKeyToValue(outputColumnName:@"PredictedLabel",inputColumnName:@"PredictedLabel"));
 
             return pipeline;

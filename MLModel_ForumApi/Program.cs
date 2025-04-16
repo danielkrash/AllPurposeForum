@@ -7,22 +7,12 @@ using Microsoft.ML.Data;
 using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
+using MLModel_ForumApi;
 
 // Configure app
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddPredictionEnginePool<MLModel.ModelInput, MLModel.ModelOutput>()
     .FromFile("MLModel.mlnet");
-
-builder.WebHost.ConfigureKestrel((context, options) =>
-{
-    options.ListenAnyIP(55613, listenOptions =>
-    {
-        listenOptions.Protocols = HttpProtocols.Http1AndHttp2AndHttp3;
-        listenOptions.UseHttps();
-    });
-});
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -43,7 +33,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+
 // Define prediction route & handler
 app.MapPost("/predict",
     async (MLModel.ModelInput input) =>

@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using AllPurposeForum.Models;
+using AllPurposeForum.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AllPurposeForum.Controllers

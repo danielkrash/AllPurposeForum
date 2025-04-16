@@ -11,10 +11,10 @@
     "FilePath": "C:\\Users\\danik\\source\\repos\\AllPurposeForum\\AllPurposeForum\\sentence_cvs\\imdb_labelled.txt",
     "Delimiter": "\t",
     "DecimalMarker": ".",
-    "HasHeader": false,
+    "HasHeader": true,
     "ColumnProperties": [
       {
-        "ColumnName": "col0",
+        "ColumnName": "Sentiment",
         "ColumnPurpose": "Text",
         "ColumnDataFormat": "String",
         "IsCategorical": false,
@@ -22,7 +22,7 @@
         "Version": 5
       },
       {
-        "ColumnName": "col1",
+        "ColumnName": "PredictedLable",
         "ColumnPurpose": "Label",
         "ColumnDataFormat": "Single",
         "IsCategorical": true,
@@ -43,18 +43,18 @@
         "Version": 1,
         "Type": "Trial",
         "TrainerName": "TextClassificationMulti",
-        "Score": 5.3240237733184959,
-        "RuntimeInSeconds": 235.453,
+        "Score": 0.83591146704840436,
+        "RuntimeInSeconds": 339.881,
         "Parameter": {
           "_SCHEMA_": "e0 * e1 * e2",
           "e0": {
-            "OutputColumnName": "col1",
-            "InputColumnName": "col1",
+            "OutputColumnName": "PredictedLable",
+            "InputColumnName": "PredictedLable",
             "AddKeyValueAnnotationsAsText": false
           },
           "e1": {
-            "LabelColumnName": "col1",
-            "Sentence1ColumnName": "col0",
+            "LabelColumnName": "PredictedLable",
+            "Sentence1ColumnName": "Sentiment",
             "ScoreColumnName": "Score",
             "OutputColumnName": "PredictedLabel",
             "BatchSize": 32,
@@ -74,7 +74,7 @@
       "e2": "MapKeyToValue"
     },
     "Schema": "e0 * e1 * e2",
-    "MetricName": "LogLoss",
+    "MetricName": "MacroAccuracy",
     "ModelFilePath": "C:\\Users\\danik\\source\\repos\\AllPurposeForum\\AllPurposeForum\\MLModel.mlnet"
   },
   "Type": "TrainingConfig",
@@ -83,9 +83,9 @@
     "Version": 1,
     "Type": "TextClassficationTrainingOption",
     "TrainingTime": 10,
-    "OptimizeMetric": "LogLoss",
-    "LabelColumn": "col1",
-    "TextColumn": "col0",
+    "OptimizeMetric": "MacroAccuracy",
+    "LabelColumn": "PredictedLable",
+    "TextColumn": "Sentiment",
     "ValidationOption": {
       "Version": 0,
       "Type": "CrossValidationValidationOption",

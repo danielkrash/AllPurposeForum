@@ -38,6 +38,8 @@ builder.Services.AddControllersWithViews(option =>
     
 });
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.Configure<RazorViewEngineOptions>(options =>
 {
     options.ViewLocationExpanders.Add(new CustomViewLocationExpander());

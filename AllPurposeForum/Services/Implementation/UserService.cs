@@ -1,4 +1,5 @@
 ﻿using AllPurposeForum.Data;
+using AllPurposeForum.Data.Models;
 using AllPurposeForum.Exeptions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -8,11 +9,11 @@ namespace AllPurposeForum.Services.Implementation
 {
     public class UserService : IUserService
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _context;
 
-        public UserService(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context)
+        public UserService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -72,7 +73,7 @@ namespace AllPurposeForum.Services.Implementation
             return result;
         }
 
-        public IdentityUser? GetUserByIdAsync(string userId)
+        public ApplicationUser? GetUserByIdAsync(string userId)
         {
             var user = _context.Users.Find(userId);
             return user;

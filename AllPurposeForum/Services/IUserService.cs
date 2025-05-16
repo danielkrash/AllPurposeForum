@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AllPurposeForum.Data.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace AllPurposeForum.Services
 {
@@ -7,7 +8,7 @@ namespace AllPurposeForum.Services
         Task<IdentityResult> RegisterUserAsync(string email, string password);
         Task<IdentityResult> UpdateUserAsync(string userId, string newEmail, string newPassword);
         Task<IdentityResult> DeleteUserAsync(string userId);
-        IdentityUser? GetUserByIdAsync(string userId);
+        ApplicationUser? GetUserByIdAsync(string userId);
         Task<IList<string>> GetUserRolesAsync(string userId);
         Task<IdentityResult> AddToRoleAsync(string userId, string roleName);
         Task<IdentityResult> RemoveFromRoleAsync(string userId, string roleName);

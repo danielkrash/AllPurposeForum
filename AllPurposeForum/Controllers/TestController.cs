@@ -1,4 +1,5 @@
-﻿using AllPurposeForum.Services;
+﻿using AllPurposeForum.Data.Models;
+using AllPurposeForum.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,9 +10,9 @@ namespace AllPurposeForum.Controllers
     public class TestController : Controller
     {
         private readonly IUserService _userService;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public TestController(IUserService userService , UserManager<IdentityUser> userManager)
+        public TestController(IUserService userService , UserManager<ApplicationUser> userManager)
         {
             _userService = userService;
             _userManager = userManager;

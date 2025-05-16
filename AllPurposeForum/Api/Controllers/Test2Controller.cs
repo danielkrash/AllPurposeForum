@@ -1,4 +1,5 @@
-﻿using AllPurposeForum.Services;
+﻿using AllPurposeForum.Data.Models;
+using AllPurposeForum.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,9 +10,9 @@ namespace AllPurposeForum.Api.Controllers
         public class Test2Controller : Controller
         {
             private readonly IUserService _userService;
-            private readonly UserManager<IdentityUser> _userManager;
+            private readonly UserManager<ApplicationUser> _userManager;
 
-            public Test2Controller(IUserService userService, UserManager<IdentityUser> userManager)
+            public Test2Controller(IUserService userService, UserManager<ApplicationUser> userManager)
             {
                 _userService = userService;
                 _userManager = userManager;
@@ -24,7 +25,7 @@ namespace AllPurposeForum.Api.Controllers
                 return Ok(products);
             }
 
-            [HttpGet("{id}")]   // GET /api/test2/xyz
+            /*[HttpGet("{id}")]   // GET /api/test2/xyz
             public async Task<IActionResult> GetProduct(string? id)
             {
                 var product = $"Product {id}";
@@ -33,7 +34,7 @@ namespace AllPurposeForum.Api.Controllers
                 var setLockut = await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddDays(1));
                 //var clearLockout = await _userManager.SetLockoutEndDateAsync(user, null);
                 return Ok(DateTimeOffset.UtcNow.AddDays(1));
-            }
+            }*/
 
             [HttpGet("int/{id:int}")] // GET /api/test2/int/3
             public IActionResult GetIntProduct(int id)

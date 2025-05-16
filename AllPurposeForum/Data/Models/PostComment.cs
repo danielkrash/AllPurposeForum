@@ -4,8 +4,6 @@ namespace AllPurposeForum.Data.Models;
 
 public partial class PostComment : BaseModel
 {
-    public  int PostId { get; set; }
-    public  int CommentId { get; set; }
     public  int CommentStatusId { get; set; }
     public required string UserId { get; set; }
     public required string Content { get; set; }

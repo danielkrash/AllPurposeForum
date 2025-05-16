@@ -3,10 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AllPurposeForum.Migrations
+namespace AllPurposeForum.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class DatabaseInit : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -48,6 +48,23 @@ namespace AllPurposeForum.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CommentStatuses",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "NULL")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CommentStatuses", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -156,6 +173,95 @@ namespace AllPurposeForum.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Topics",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NSFW = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "NULL")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Topics", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Topics_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Posts",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TopicId = table.Column<int>(type: "int", nullable: false),
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    NSFW = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "NULL")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Posts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Posts_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Posts_Topics_TopicId",
+                        column: x => x.TopicId,
+                        principalTable: "Topics",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PostComments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    CommentStatusId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "NULL")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PostComments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PostComments_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_PostComments_CommentStatuses_CommentStatusId",
+                        column: x => x.CommentStatusId,
+                        principalTable: "CommentStatuses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_PostComments_Posts_Id",
+                        column: x => x.Id,
+                        principalTable: "Posts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -194,6 +300,31 @@ namespace AllPurposeForum.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PostComments_CommentStatusId",
+                table: "PostComments",
+                column: "CommentStatusId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PostComments_UserId",
+                table: "PostComments",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Posts_ApplicationUserId",
+                table: "Posts",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Posts_TopicId",
+                table: "Posts",
+                column: "TopicId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Topics_ApplicationUserId",
+                table: "Topics",
+                column: "ApplicationUserId");
         }
 
         /// <inheritdoc />
@@ -215,7 +346,19 @@ namespace AllPurposeForum.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "PostComments");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "CommentStatuses");
+
+            migrationBuilder.DropTable(
+                name: "Posts");
+
+            migrationBuilder.DropTable(
+                name: "Topics");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

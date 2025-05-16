@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using System.Text.Encodings.Web;
 using System.Text;
 using System.Security.Claims;
+using AllPurposeForum.Data.Models;
 
 namespace AllPurposeForum.Api.Controllers
 {
@@ -24,10 +25,10 @@ namespace AllPurposeForum.Api.Controllers
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly IEmailSender<IdentityUser> _emailSender;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailSender<ApplicationUser> _emailSender;
 
-        public AuthController(IServiceProvider serviceProvider, ApplicationDbContext context, UserManager<IdentityUser> userManager, IEmailSender<IdentityUser> emailSender)
+        public AuthController(IServiceProvider serviceProvider, ApplicationDbContext context, UserManager<ApplicationUser> userManager, IEmailSender<ApplicationUser> emailSender)
         {
             _serviceProvider = serviceProvider;
             _context = context;
@@ -42,14 +43,14 @@ namespace AllPurposeForum.Api.Controllers
             if (!_userManager.SupportsUserEmail)
                 throw new NotSupportedException("This endpoint requires a user store with email support.");
 
-            var userStore = _serviceProvider.GetRequiredService<IUserStore<IdentityUser>>();
-            var emailStore = (IUserEmailStore<IdentityUser>)userStore;
+            var userStore = _serviceProvider.GetRequiredService<IUserStore<ApplicationUser>>();
+            var emailStore = (IUserEmailStore<ApplicationUser>)userStore;
             var email = registration.Email;
 
             if (string.IsNullOrEmpty(email) || !new EmailAddressAttribute().IsValid(email))
                 return Utils.CreateValidationProblem(IdentityResult.Failed(_userManager.ErrorDescriber.InvalidEmail(email)));
 
-            var user = new IdentityUser();
+            var user = new ApplicationUser();
             await userStore.SetUserNameAsync(user, email, CancellationToken.None);
             await emailStore.SetEmailAsync(user, email, CancellationToken.None);
             var result = await _userManager.CreateAsync(user, registration.Password);
@@ -66,7 +67,7 @@ namespace AllPurposeForum.Api.Controllers
         [HttpPost("login")]
         public async Task<Results<Ok<AccessTokenResponse>, EmptyHttpResult, ProblemHttpResult>> Login([FromBody] LoginRequest login , [FromQuery] bool? useCookies, [FromQuery] bool? useSessionCookies)
         {
-            var signInManager = _serviceProvider.GetRequiredService<SignInManager<IdentityUser>>();
+            var signInManager = _serviceProvider.GetRequiredService<SignInManager<ApplicationUser>>();
             var useCookieScheme = useCookies == true || useSessionCookies == true;
             var isPersistent = useCookies == true && useSessionCookies != true;
             signInManager.AuthenticationScheme =
@@ -101,7 +102,7 @@ namespace AllPurposeForum.Api.Controllers
             // Reject the /refresh attempt with a 401 if the token expired or the security stamp validation fails
             if (refreshTicket?.Properties?.ExpiresUtc is not { } expiresUtc ||
                 timeProvider.GetUtcNow() >= expiresUtc ||
-                await signInManager.ValidateSecurityStampAsync(refreshTicket.Principal) is not IdentityApplicationUser user)
+                await signInManager.ValidateSecurityStampAsync(refreshTicket.Principal) is not { } user)
                 return TypedResults.Challenge();
 
             var newPrincipal = await signInManager.CreateUserPrincipalAsync(user);
@@ -181,14 +182,17 @@ namespace AllPurposeForum.Api.Controllers
         }
 
         [HttpPost("info")]
-        public async Task<Results<Ok<InfoResponse>, ValidationProblem , NotFound>> Info(IHttpContextAccessor context, [FromBody] InfoRequest infoRequest)
+        public async Task<Results<Ok<InfoResponse>, ValidationProblem, NotFound>> Info(IHttpContextAccessor context, [FromBody] InfoRequest infoRequest)
         {
-            var claimsPrincipal = context.HttpContext.User;
-            if (await _userManager.GetUserAsync(claimsPrincipal) is not { } user) return TypedResults.NotFound();
+            if (context?.HttpContext?.User is not { } claimsPrincipal)
+                return TypedResults.NotFound();
 
-            EmailAddressAttribute _emailAddressAttribute = new();
+            if (await _userManager.GetUserAsync(claimsPrincipal) is not { } user)
+                return TypedResults.NotFound();
 
-            if (!string.IsNullOrEmpty(infoRequest.NewEmail) && !_emailAddressAttribute.IsValid(infoRequest.NewEmail))
+            EmailAddressAttribute emailAddressAttribute = new();
+
+            if (!string.IsNullOrEmpty(infoRequest.NewEmail) && !emailAddressAttribute.IsValid(infoRequest.NewEmail))
                 return Utils.CreateValidationProblem(
                     IdentityResult.Failed(_userManager.ErrorDescriber.InvalidEmail(infoRequest.NewEmail)));
 
@@ -215,15 +219,19 @@ namespace AllPurposeForum.Api.Controllers
         [HttpGet("info")]
         public async Task<Results<Ok<InfoResponse>, ValidationProblem, NotFound>> Info(IHttpContextAccessor context)
         {
-            var claimsPrincipal = context.HttpContext.User;
-            if (await _userManager.GetUserAsync(claimsPrincipal) is not { } user) return TypedResults.NotFound();
+            if (context?.HttpContext?.User is not { } claimsPrincipal)
+                return TypedResults.NotFound();
+
+            if (await _userManager.GetUserAsync(claimsPrincipal) is not { } user)
+                return TypedResults.NotFound();
+
             return TypedResults.Ok(await CreateInfoResponseAsync(user, _userManager));
         }
 
         [HttpPost("logout")]
         public async Task<Results<Ok, UnauthorizedHttpResult>> Logout([FromQuery] bool? useCookies)
         {
-            var signInManager = _serviceProvider.GetRequiredService<SignInManager<IdentityUser>>();
+            var signInManager = _serviceProvider.GetRequiredService<SignInManager<ApplicationUser>>();
             var useCookieScheme = useCookies == true;
             signInManager.AuthenticationScheme =
                 useCookieScheme ? IdentityConstants.ApplicationScheme : IdentityConstants.BearerScheme;
@@ -265,7 +273,7 @@ namespace AllPurposeForum.Api.Controllers
             return new ValidationProblemDetails(errorDictionary);
         }
 
-        private static async Task<InfoResponse> CreateInfoResponseAsync(IdentityUser user, UserManager<IdentityUser> userManager)
+        private static async Task<InfoResponse> CreateInfoResponseAsync(ApplicationUser user, UserManager<ApplicationUser> userManager)
         {
             return new InfoResponse
             {

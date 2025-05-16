@@ -1,4 +1,5 @@
 using AllPurposeForum.Data;
+using AllPurposeForum.Data.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.OpenApi.Models;
@@ -23,7 +24,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 //builder.Services.AddControllersWithViews(config =>
@@ -114,3 +115,5 @@ app.MapRazorPages()
    .WithStaticAssets();
 
 app.Run();
+
+public partial class Program { }

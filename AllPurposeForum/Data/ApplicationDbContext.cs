@@ -14,7 +14,7 @@ namespace AllPurposeForum.Data
         public DbSet<Post> Posts { get; set; }
         public DbSet<PostComment> PostComments { get; set; }
         public DbSet<Topic> Topics { get; set; }
-        public DbSet<CommentStatus> CommentStatuses { get; set; }
+        /*public DbSet<CommentStatus> CommentStatuses { get; set; }*/
         
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -56,16 +56,17 @@ namespace AllPurposeForum.Data
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.Property(e => e.DeletedAt).HasDefaultValueSql("NULL");
                 entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.Acceptence).HasDefaultValue(true);
                 entity.HasOne(e => e.Post)
                     .WithMany(e => e.PostComments)
                     .HasForeignKey(e => e.Id)
                     .OnDelete(DeleteBehavior.Cascade);
-                entity.HasOne(e => e.CommentStatus)
+                /*entity.HasOne(e => e.CommentStatus)
                     .WithMany(e => e.PostComments)
                     .HasForeignKey(e => e.CommentStatusId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Restrict);*/
             });
-            builder.Entity<CommentStatus>(entity =>
+            /*builder.Entity<CommentStatus>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.Status).IsRequired();
@@ -73,7 +74,7 @@ namespace AllPurposeForum.Data
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.Property(e => e.DeletedAt).HasDefaultValueSql("NULL");
                 entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            });
+            });*/
             OnModelCreatingPartial(builder);
         }
         

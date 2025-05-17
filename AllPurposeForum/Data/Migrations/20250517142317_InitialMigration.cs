@@ -51,23 +51,6 @@ namespace AllPurposeForum.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CommentStatuses",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "NULL")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CommentStatuses", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -232,9 +215,9 @@ namespace AllPurposeForum.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false),
-                    CommentStatusId = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Acceptence = table.Column<bool>(type: "bit", nullable: true, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
                     DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "NULL")
@@ -248,12 +231,6 @@ namespace AllPurposeForum.Data.Migrations
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_PostComments_CommentStatuses_CommentStatusId",
-                        column: x => x.CommentStatusId,
-                        principalTable: "CommentStatuses",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_PostComments_Posts_Id",
                         column: x => x.Id,
@@ -302,11 +279,6 @@ namespace AllPurposeForum.Data.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PostComments_CommentStatusId",
-                table: "PostComments",
-                column: "CommentStatusId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_PostComments_UserId",
                 table: "PostComments",
                 column: "UserId");
@@ -350,9 +322,6 @@ namespace AllPurposeForum.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
-
-            migrationBuilder.DropTable(
-                name: "CommentStatuses");
 
             migrationBuilder.DropTable(
                 name: "Posts");

@@ -87,42 +87,6 @@ namespace AllPurposeForum.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("AllPurposeForum.Data.Models.CommentStatus", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("NULL");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("CommentStatuses");
-                });
-
             modelBuilder.Entity("AllPurposeForum.Data.Models.Post", b =>
                 {
                     b.Property<int>("Id")
@@ -178,8 +142,10 @@ namespace AllPurposeForum.Data.Migrations
                     b.Property<int>("Id")
                         .HasColumnType("int");
 
-                    b.Property<int>("CommentStatusId")
-                        .HasColumnType("int");
+                    b.Property<bool?>("Acceptence")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -205,8 +171,6 @@ namespace AllPurposeForum.Data.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CommentStatusId");
 
                     b.HasIndex("UserId");
 
@@ -416,12 +380,6 @@ namespace AllPurposeForum.Data.Migrations
 
             modelBuilder.Entity("AllPurposeForum.Data.Models.PostComment", b =>
                 {
-                    b.HasOne("AllPurposeForum.Data.Models.CommentStatus", "CommentStatus")
-                        .WithMany("PostComments")
-                        .HasForeignKey("CommentStatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("AllPurposeForum.Data.Models.Post", "Post")
                         .WithMany("PostComments")
                         .HasForeignKey("Id")
@@ -433,8 +391,6 @@ namespace AllPurposeForum.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("CommentStatus");
 
                     b.Navigation("Post");
 
@@ -510,11 +466,6 @@ namespace AllPurposeForum.Data.Migrations
                     b.Navigation("Posts");
 
                     b.Navigation("Topics");
-                });
-
-            modelBuilder.Entity("AllPurposeForum.Data.Models.CommentStatus", b =>
-                {
-                    b.Navigation("PostComments");
                 });
 
             modelBuilder.Entity("AllPurposeForum.Data.Models.Post", b =>

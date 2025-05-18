@@ -1,0 +1,65 @@
+@model AllPurposeForum.Web.Models.TopicPageViewModel
+
+@{ 
+    ViewData["Title"] = Model.TopicTitle;
+}
+
+<div class="container mt-4">
+    <div class="topic-header mb-4 p-3 bg-light rounded">
+        <h2>@Model.TopicTitle</h2>
+        <p class="text-muted">@Model.TopicDescription</p>
+    </div>
+
+    <h3 class="mb-3">Posts</h3>
+
+    @if (Model.Posts != null && Model.Posts.Any())
+    {
+        foreach (var post in Model.Posts)
+        {
+            <div class="card post-card mb-3">
+                <div class="card-header d-flex justify-content-between">
+                    <h5 class="mb-0">@post.Title</h5>
+                    <small class="text-muted">By @post.UserName</small>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">@Html.Raw(post.Content)</p> 
+                </div>
+                <div class="card-footer text-muted d-flex justify-content-between">
+                    <span>@post.CommentsCount comment(s)</span>
+                    <span>Posted: @post.CreatedAtFormatted</span>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="alert alert-info" role="alert">
+            No posts found in this topic yet.
+        </div>
+    }
+</div>
+
+<style>
+    .topic-header {
+        border-left: 5px solid #007bff;
+    }
+
+    .post-card {
+        border: 1px solid #e0e0e0;
+        transition: box-shadow .3s ease-in-out;
+    }
+
+    .post-card:hover {
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+
+    .post-card .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .post-card .card-footer {
+        background-color: #f8f9fa;
+        font-size: 0.9em;
+    }
+</style>

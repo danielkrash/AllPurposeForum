@@ -1,8 +1,57 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model IEnumerable<AllPurposeForum.Data.DTO.TopicDTO>
+@{
+    ViewData["Title"] = "Topics";
+    int hueCounter = 0; // Counter for generating different hues
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container">
+    <h1 class="text-center my-4">@ViewData["Title"]</h1>
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var topic in Model)
+            {
+                var hue = (hueCounter++ * 60) % 360; // Generate a new hue for each card
+                <div class="col">
+                    <a asp-controller="Topic" asp-action="Index" asp-route-topicId="@topic.Id" class="text-decoration-none">
+                        <div class="card h-100 topic-card" style="--bg-hue: @hue;">
+                            <div class="card-body">
+                                <h5 class="card-title">@topic.Title</h5>
+                                <p class="card-text">@topic.Description</p>
+                            </div>
+                            <div class="card-footer d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Created by: @topic.UserName</small>
+                                <small class="text-muted">Posts: @topic.PostsCount</small>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col">
+                <p class="text-center">No topics found.</p>
+            </div>
+        }
+    </div>
 </div>
+
+<style>
+    .topic-card {
+        transition: transform .2s ease-in-out, box-shadow .2s ease-in-out;
+        background-color: hsl(var(--bg-hue, 200), 50%, 95%); /* Default hue if not set */
+        border: 1px solid hsl(var(--bg-hue, 200), 50%, 85%);
+    }
+
+    .topic-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        background-color: hsl(var(--bg-hue, 200), 60%, 90%);
+        border-color: hsl(var(--bg-hue, 200), 60%, 80%);
+    }
+
+    .topic-card .card-title {
+        color: hsl(var(--bg-hue, 200), 70%, 40%);
+    }
+</style>

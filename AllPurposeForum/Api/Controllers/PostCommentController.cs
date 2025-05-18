@@ -2,10 +2,6 @@
 using AllPurposeForum.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 
 namespace AllPurposeForum.Api.Controllers;
 
@@ -82,9 +78,7 @@ public class PostCommentController : ControllerBase
         catch (Exception ex)
         {
             if (ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
-            {
                 return TypedResults.NotFound(ex.Message);
-            }
 
             return TypedResults.BadRequest(ex.Message);
         }
@@ -97,10 +91,7 @@ public class PostCommentController : ControllerBase
         try
         {
             var result = await _postCommentService.DeletePostCommentAsync(id);
-            if (result)
-            {
-                return TypedResults.Ok();
-            }
+            if (result) return TypedResults.Ok();
 
             // This case might be hit if DeletePostCommentAsync returns false for a non-exception failure
             return TypedResults.BadRequest("Failed to delete post comment.");
@@ -108,9 +99,7 @@ public class PostCommentController : ControllerBase
         catch (Exception ex)
         {
             if (ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
-            {
                 return TypedResults.NotFound(ex.Message);
-            }
 
             return TypedResults.BadRequest(ex.Message);
         }

@@ -2,10 +2,6 @@
 using AllPurposeForum.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 
 namespace AllPurposeForum.Api.Controllers;
 
@@ -79,9 +75,7 @@ public class TopicController : ControllerBase
         catch (Exception ex)
         {
             if (ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
-            {
                 return TypedResults.NotFound(ex.Message);
-            }
 
             return TypedResults.BadRequest(ex.Message);
         }
@@ -94,19 +88,14 @@ public class TopicController : ControllerBase
         try
         {
             var result = await _topicService.DeleteTopicAsync(id);
-            if (result)
-            {
-                return TypedResults.Ok();
-            }
+            if (result) return TypedResults.Ok();
 
             return TypedResults.BadRequest("Failed to delete topic."); // Or NotFound if preferred for this case
         }
         catch (Exception ex)
         {
             if (ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
-            {
                 return TypedResults.NotFound(ex.Message);
-            }
 
             return TypedResults.BadRequest(ex.Message);
         }

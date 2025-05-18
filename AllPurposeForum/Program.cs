@@ -18,7 +18,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
+                       throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -29,6 +30,8 @@ builder.Services.AddAuthorization(options =>
 });
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<ITopicService, TopicService>();
+builder.Services.AddScoped<IPostCommentService, PostCommentService>();
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
@@ -39,10 +42,7 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
 //                     .Build();
 //    config.Filters.Add(new AuthorizeFilter(policy));
 //});
-builder.Services.AddControllersWithViews(option =>
-{
-    
-});
+builder.Services.AddControllersWithViews(option => { });
 
 builder.Services.AddHttpContextAccessor();
 
@@ -60,10 +60,7 @@ builder.WebHost.ConfigureKestrel((context, options) =>
     });
 });
 
-builder.Services.AddRouting(options =>
-{
-    options.LowercaseUrls = true;
-});
+builder.Services.AddRouting(options => { options.LowercaseUrls = true; });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi(options =>
@@ -85,10 +82,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
     app.MapOpenApi();
-    app.MapScalarApiReference(options =>
-    {
-        options.BaseServerUrl = "https://localhost:7128";
-    });
+    app.MapScalarApiReference(options => { options.BaseServerUrl = "https://localhost:7128"; });
     //app.UseSwaggerUI(options =>
     //{
     //    options.SwaggerEndpoint("/openapi/v1.json", "v1");
@@ -112,13 +106,15 @@ app.UseAuthorization();
 app.MapStaticAssets();
 
 app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=home}/{action=index}/{id?}")
+        name: "default",
+        pattern: "{controller=home}/{action=index}/{id?}")
     .WithStaticAssets();
 
 app.MapRazorPages()
-   .WithStaticAssets();
+    .WithStaticAssets();
 
 app.Run();
 
-public partial class Program { }
+public partial class Program
+{
+}

@@ -10,15 +10,33 @@ namespace AllPurposeForum.Service.Test;
 
 public class AllPurposeForumFactory : IDisposable
 {
+    // Made fields non-readonly to allow re-initialization
+    private DbConnection _connection;
+    private DbContextOptions<ApplicationDbContext> _contextOptions;
+
     public AllPurposeForumFactory()
     {
-        
-        // Create and open a connection. This creates the SQLite in-memory database, which will persist until the connection is closed
-        // at the end of the test (see Dispose below).
+        // Initialize the database when the factory is first created.
+        ResetDatabase();
+    }
+
+    public ApplicationDbContext Context { get; private set; }
+
+    public void ResetDatabase()
+    {
+        // Dispose existing context and connection if they exist
+        Context?.Dispose();
+        if (_connection != null)
+        {
+            _connection.Close(); // Close connection to release in-memory SQLite database
+            _connection.Dispose();
+        }
+
+        // Create and open a new connection. This creates a new SQLite in-memory database.
         _connection = new SqliteConnection("Filename=:memory:");
         _connection.Open();
 
-        // These options will be used by the context instances in this test suite, including the connection opened above.
+        // These options will be used by the new context instance.
         _contextOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
             .UseSqlite(_connection)
             .Options;
@@ -26,6 +44,11 @@ public class AllPurposeForumFactory : IDisposable
         // Create the schema and seed some data
         Context = new ApplicationDbContext(_contextOptions);
         Context.Database.EnsureCreated();
+        SeedData();
+    }
+
+    private void SeedData()
+    {
         var users = new List<ApplicationUser>
         {
             new ApplicationUser
@@ -125,17 +148,16 @@ public class AllPurposeForumFactory : IDisposable
         Context.Posts.AddRange(posts);
         Context.PostComments.AddRange(comments);
         Context.SaveChanges();
-        
     }
-
-    public ApplicationDbContext Context { get; private set; }
-    private readonly IServiceProvider _serviceProvider;
-    private readonly DbConnection _connection;
-    private readonly DbContextOptions<ApplicationDbContext> _contextOptions;
 
     public void Dispose()
     {
         Context?.Dispose();
-        _connection?.Dispose();
+        if (_connection != null)
+        {
+            _connection.Close();
+            _connection.Dispose();
+        }
     }
 }
+

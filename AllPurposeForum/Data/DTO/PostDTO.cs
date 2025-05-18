@@ -10,4 +10,6 @@ public class PostDTO
     public string UserName { get; set; }
     public int CommentsCount { get; set; }
     public int TopicId { get; set; }
+
+    public DateTime? CreatedAt { get; set; }
 }

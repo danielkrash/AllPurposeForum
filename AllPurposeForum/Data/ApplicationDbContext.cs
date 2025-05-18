@@ -10,10 +10,10 @@ namespace AllPurposeForum.Data
             : base(options)
         {
         }
-        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
-        public DbSet<Post> Posts { get; set; }
-        public DbSet<PostComment> PostComments { get; set; }
-        public DbSet<Topic> Topics { get; set; }
+        public virtual DbSet<ApplicationUser> ApplicationUsers { get; set; }
+        public virtual DbSet<Post> Posts { get; set; }
+        public virtual DbSet<PostComment> PostComments { get; set; }
+        public virtual DbSet<Topic> Topics { get; set; }
         /*public DbSet<CommentStatus> CommentStatuses { get; set; }*/
         
         protected override void OnModelCreating(ModelBuilder builder)
@@ -59,7 +59,7 @@ namespace AllPurposeForum.Data
                 entity.Property(e => e.Acceptence).HasDefaultValue(true);
                 entity.HasOne(e => e.Post)
                     .WithMany(e => e.PostComments)
-                    .HasForeignKey(e => e.Id)
+                    .HasForeignKey(e => e.PostId)
                     .OnDelete(DeleteBehavior.Cascade);
                 /*entity.HasOne(e => e.CommentStatus)
                     .WithMany(e => e.PostComments)

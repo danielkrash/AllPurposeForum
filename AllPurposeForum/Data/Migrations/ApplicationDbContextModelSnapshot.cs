@@ -17,7 +17,7 @@ namespace AllPurposeForum.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.4")
+                .HasAnnotation("ProductVersion", "9.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -113,7 +113,7 @@ namespace AllPurposeForum.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("NULL");
 
-                    b.Property<bool>("NSFW")
+                    b.Property<bool>("Nsfw")
                         .HasColumnType("bit");
 
                     b.Property<string>("Title")
@@ -140,7 +140,10 @@ namespace AllPurposeForum.Data.Migrations
             modelBuilder.Entity("AllPurposeForum.Data.Models.PostComment", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<bool?>("Acceptence")
                         .ValueGeneratedOnAdd()
@@ -161,6 +164,9 @@ namespace AllPurposeForum.Data.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("NULL");
 
+                    b.Property<int>("PostId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
@@ -171,6 +177,8 @@ namespace AllPurposeForum.Data.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PostId");
 
                     b.HasIndex("UserId");
 
@@ -203,7 +211,7 @@ namespace AllPurposeForum.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("NSFW")
+                    b.Property<bool>("Nsfw")
                         .HasColumnType("bit");
 
                     b.Property<string>("Title")
@@ -382,7 +390,7 @@ namespace AllPurposeForum.Data.Migrations
                 {
                     b.HasOne("AllPurposeForum.Data.Models.Post", "Post")
                         .WithMany("PostComments")
-                        .HasForeignKey("Id")
+                        .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

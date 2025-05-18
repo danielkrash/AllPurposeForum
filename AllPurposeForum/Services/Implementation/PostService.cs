@@ -1,13 +1,21 @@
 ﻿using AllPurposeForum.Data;
 using AllPurposeForum.Data.DTO;
 using AllPurposeForum.Data.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AllPurposeForum.Services.Implementation;
 
+[Authorize]
 public class PostService : IPostService
 {
     private readonly ApplicationDbContext _context;
-    
+
+    public PostService(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    [Authorize(Policy = "RequireAdministratorRole")]
     public async Task<CreatePostDTO> CreatePost(CreatePostDTO post)
     {
         var a = _context.Posts.Add(new Post

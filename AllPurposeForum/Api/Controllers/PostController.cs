@@ -1,8 +1,7 @@
 ﻿using AllPurposeForum.Data.DTO;
 using AllPurposeForum.Services;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AllPurposeForum.Api.Controllers;
 
@@ -109,10 +108,7 @@ public class PostController : ControllerBase
     public async Task<Results<Ok<UpdatePostDTO>, NotFound<string>, BadRequest<string>>> UpdatePost(int id,
         [FromBody] UpdatePostDTO updatePostDto)
     {
-        if (id != updatePostDto.Id)
-        {
-            return TypedResults.BadRequest("Post ID in URL must match Post ID in body.");
-        }
+        if (id != updatePostDto.Id) return TypedResults.BadRequest("Post ID in URL must match Post ID in body.");
 
         try
         {
@@ -122,9 +118,7 @@ public class PostController : ControllerBase
         catch (Exception ex)
         {
             if (ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
-            {
                 return TypedResults.NotFound(ex.Message);
-            }
 
             return TypedResults.BadRequest(ex.Message);
         }
@@ -138,9 +132,7 @@ public class PostController : ControllerBase
         {
             var result = await _postService.DeletePost(id);
             if (result) // Assuming DeletePost returns true on success
-            {
                 return TypedResults.Ok();
-            }
 
             // This path might indicate a failure that wasn't an exception (e.g., service returns false)
             return TypedResults.BadRequest("Failed to delete post.");
@@ -148,9 +140,7 @@ public class PostController : ControllerBase
         catch (Exception ex)
         {
             if (ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
-            {
                 return TypedResults.NotFound(ex.Message);
-            }
 
             return TypedResults.BadRequest(ex.Message);
         }

@@ -27,7 +27,8 @@ public class PostCommentService : IPostCommentService
             PostId = p.PostId,
             UserId = p.UserId,
             Content = p.Content,
-            UserName = p.User.UserName
+            UserName = p.User.UserName,
+            CreatedAt = p.CreatedAt
         }).ToList());
     }
 
@@ -47,7 +48,8 @@ public class PostCommentService : IPostCommentService
             PostId = post.PostId,
             UserId = post.UserId,
             Content = post.Content,
-            UserName = post.User.UserName
+            UserName = post.User.UserName,
+            CreatedAt = post.CreatedAt
         });
     }
 
@@ -139,7 +141,8 @@ public class PostCommentService : IPostCommentService
             PostId = p.PostId,
             UserId = p.UserId,
             Content = p.Content,
-            UserName = p.User.UserName
+            UserName = p.User.UserName,
+            CreatedAt = p.CreatedAt
         }).ToList());
     }
 
@@ -160,7 +163,8 @@ public class PostCommentService : IPostCommentService
             PostId = p.PostId,
             UserId = p.UserId,
             Content = p.Content,
-            UserName = p.User.UserName
+            UserName = p.User.UserName,
+            CreatedAt = p.CreatedAt
         }).ToList());
     }
 }

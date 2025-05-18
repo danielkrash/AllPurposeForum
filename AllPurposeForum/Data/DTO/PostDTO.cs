@@ -7,5 +7,7 @@ public class PostDTO
     public string Content { get; set; }
     public bool Nsfw { get; set; }
     public string UserId { get; set; }
+    public string UserName { get; set; }
+    public int CommentsCount { get; set; }
     public int TopicId { get; set; }
 }

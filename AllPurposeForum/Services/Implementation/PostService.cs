@@ -56,7 +56,8 @@ public class PostService : IPostService
             UserId = post.ApplicationUserId,
             TopicId = post.TopicId,
             UserName = post.ApplicationUser.UserName,
-            CommentsCount = post.PostComments.Count
+            CommentsCount = post.PostComments.Count,
+            CreatedAt = post.CreatedAt
         });
     }
 
@@ -82,7 +83,8 @@ public class PostService : IPostService
             UserId = p.ApplicationUserId,
             TopicId = p.TopicId,
             UserName = p.ApplicationUser.UserName,
-            CommentsCount = p.PostComments.Count
+            CommentsCount = p.PostComments.Count,
+            CreatedAt = p.CreatedAt
         }).ToList());
     }
 
@@ -108,7 +110,8 @@ public class PostService : IPostService
             UserId = p.ApplicationUserId,
             TopicId = p.TopicId,
             UserName = p.ApplicationUser.UserName,
-            CommentsCount = p.PostComments.Count
+            CommentsCount = p.PostComments.Count,
+            CreatedAt = p.CreatedAt
         }).ToList());
     }
 
@@ -134,7 +137,8 @@ public class PostService : IPostService
             UserId = p.ApplicationUserId,
             TopicId = p.TopicId,
             UserName = p.ApplicationUser.UserName,
-            CommentsCount = p.PostComments.Count
+            CommentsCount = p.PostComments.Count,
+            CreatedAt = p.CreatedAt
         }).ToList());
     }
 
@@ -159,7 +163,8 @@ public class PostService : IPostService
             UserId = p.ApplicationUserId,
             TopicId = p.TopicId,
             UserName = p.ApplicationUser.UserName,
-            CommentsCount = p.PostComments.Count
+            CommentsCount = p.PostComments.Count,
+            CreatedAt = p.CreatedAt
         }).ToList());
     }
 

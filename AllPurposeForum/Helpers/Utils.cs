@@ -5,58 +5,51 @@ using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.General;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Encodings.Web;
+using System;
 
 namespace AllPurposeForum.Helpers
 {
     public static class Utils
     {
-
-
         public static ValidationProblem CreateValidationProblem(string errorCode, string errorDescription)
         {
             return TypedResults.ValidationProblem(new Dictionary<string, string[]>
-        {
-            { errorCode, [errorDescription] }
-        });
+            {
+                { errorCode, new[] { errorDescription } }
+            });
         }
 
-//        public static async Task Confirm(IdentityApplicationUser user, UserManager<IdentityApplicationUser> userManager, HttpContext context, IServiceProvider serviceProvider,
-//    string email, bool isChange = false
-//)
-//        {
-//            var user
-//            if (await userManager.FindByIdAsync(userId) is not { } user)
-//                // We could respond with a 404 instead of a 401 like Identity UI, but that feels like unnecessary information.
-//                return TypedResults.Unauthorized();
+        public static string TimeAgo(DateTime? dateTime)
+        {
+            if (!dateTime.HasValue)
+            {
+                return "Unknown";
+            }
 
-//            try
-//            {
-//                code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
-//            }
-//            catch (FormatException)
-//            {
-//                return TypedResults.Unauthorized();
-//            }
+            var timeSpan = DateTime.UtcNow - dateTime.Value;
 
-//            IdentityResult result;
-
-//            if (string.IsNullOrEmpty(changedEmail))
-//            {
-//                result = await userManager.ConfirmEmailAsync(user, code);
-//            }
-//            else
-//            {
-//                // As with Identity UI, email and user name are one and the same. So when we update the email,
-//                // we need to update the user name.
-//                result = await userManager.ChangeEmailAsync(user, changedEmail, code);
-
-//                if (result.Succeeded) result = await userManager.SetUserNameAsync(user, changedEmail);
-//            }
-
-//            if (!result.Succeeded) return TypedResults.Unauthorized();
-
-//            return TypedResults.Text("Thank you for confirming your email.");
-//        }
+            if (timeSpan.TotalSeconds < 60)
+            {
+                return $"{(int)timeSpan.TotalSeconds} seconds ago";
+            }
+            if (timeSpan.TotalMinutes < 60)
+            {
+                return $"{(int)timeSpan.TotalMinutes} minutes ago";
+            }
+            if (timeSpan.TotalHours < 24)
+            {
+                return $"{(int)timeSpan.TotalHours} hours ago";
+            }
+            if (timeSpan.TotalDays < 30)
+            {
+                return $"{(int)timeSpan.TotalDays} days ago";
+            }
+            if (timeSpan.TotalDays < 365)
+            {
+                return $"{(int)(timeSpan.TotalDays / 30)} months ago";
+            }
+            return $"{(int)(timeSpan.TotalDays / 365)} years ago";
+        }
 
         public static ValidationProblem CreateValidationProblem(IdentityResult result)
         {
@@ -77,7 +70,7 @@ namespace AllPurposeForum.Helpers
                 }
                 else
                 {
-                    newDescriptions = [error.Description];
+                    newDescriptions = new[] { error.Description };
                 }
 
                 errorDictionary[error.Code] = newDescriptions;

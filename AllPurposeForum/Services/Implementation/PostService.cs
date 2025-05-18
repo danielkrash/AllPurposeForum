@@ -32,17 +32,21 @@ public class PostService : IPostService
         {
             throw new Exception("Failed to create post");
         }
+
         return post;
     }
 
     public async Task<PostDTO> GetPostById(int id)
     {
         var post = await _context.Posts
+            .Include(p => p.ApplicationUser)
+            .Include(p => p.PostComments)
             .FirstOrDefaultAsync(p => p.Id == id);
         if (post == null)
         {
             throw new Exception("Post not found");
         }
+
         return await Task.FromResult(new PostDTO
         {
             Id = post.Id,
@@ -50,13 +54,17 @@ public class PostService : IPostService
             Content = post.Content,
             Nsfw = post.Nsfw,
             UserId = post.ApplicationUserId,
-            TopicId = post.TopicId
+            TopicId = post.TopicId,
+            UserName = post.ApplicationUser.UserName,
+            CommentsCount = post.PostComments.Count
         });
     }
 
     public async Task<List<PostDTO>> GetPostsByTopicId(int topicId)
     {
         var posts = await _context.Posts
+            .Include(p => p.ApplicationUser)
+            .Include(p => p.PostComments)
             .Where(p => p.TopicId == topicId)
             .ToListAsync();
 
@@ -72,13 +80,17 @@ public class PostService : IPostService
             Content = p.Content,
             Nsfw = p.Nsfw,
             UserId = p.ApplicationUserId,
-            TopicId = p.TopicId
+            TopicId = p.TopicId,
+            UserName = p.ApplicationUser.UserName,
+            CommentsCount = p.PostComments.Count
         }).ToList());
     }
 
     public async Task<List<PostDTO>> GetPostsByUserId(string userId)
     {
         var posts = await _context.Posts
+            .Include(p => p.ApplicationUser)
+            .Include(p => p.PostComments)
             .Where(p => p.ApplicationUserId == userId)
             .ToListAsync();
 
@@ -94,13 +106,17 @@ public class PostService : IPostService
             Content = p.Content,
             Nsfw = p.Nsfw,
             UserId = p.ApplicationUserId,
-            TopicId = p.TopicId
+            TopicId = p.TopicId,
+            UserName = p.ApplicationUser.UserName,
+            CommentsCount = p.PostComments.Count
         }).ToList());
     }
 
     public async Task<List<PostDTO>> GetPostsByUserIdAndTopicId(string userId, int topicId)
     {
         var posts = await _context.Posts
+            .Include(e => e.ApplicationUser)
+            .Include(e => e.PostComments)
             .Where(p => p.ApplicationUserId == userId && p.TopicId == topicId)
             .ToListAsync();
 
@@ -116,11 +132,38 @@ public class PostService : IPostService
             Content = p.Content,
             Nsfw = p.Nsfw,
             UserId = p.ApplicationUserId,
-            TopicId = p.TopicId
+            TopicId = p.TopicId,
+            UserName = p.ApplicationUser.UserName,
+            CommentsCount = p.PostComments.Count
         }).ToList());
     }
 
-    public async Task<PostDTO> UpdatePost(PostDTO post)
+    public async Task<List<PostDTO>> GetAllPosts()
+    {
+        var posts = await _context.Posts
+            .Include(p => p.ApplicationUser)
+            .Include(p => p.PostComments)
+            .ToListAsync();
+
+        if (posts == null || posts.Count == 0)
+        {
+            throw new Exception("No posts found");
+        }
+
+        return await Task.FromResult(posts.Select(p => new PostDTO
+        {
+            Id = p.Id,
+            Title = p.Title,
+            Content = p.Content,
+            Nsfw = p.Nsfw,
+            UserId = p.ApplicationUserId,
+            TopicId = p.TopicId,
+            UserName = p.ApplicationUser.UserName,
+            CommentsCount = p.PostComments.Count
+        }).ToList());
+    }
+
+    public async Task<UpdatePostDTO> UpdatePost(UpdatePostDTO post)
     {
         var existingPost = await _context.Posts
             .FirstOrDefaultAsync(p => p.Id == post.Id);

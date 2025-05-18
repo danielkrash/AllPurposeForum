@@ -165,7 +165,7 @@ namespace AllPurposeForum.Data.Migrations
                     ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    NSFW = table.Column<bool>(type: "bit", nullable: false),
+                    Nsfw = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
                     DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "NULL")
@@ -190,7 +190,7 @@ namespace AllPurposeForum.Data.Migrations
                     ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    NSFW = table.Column<bool>(type: "bit", nullable: false),
+                    Nsfw = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
                     DeletedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "NULL")
@@ -214,8 +214,10 @@ namespace AllPurposeForum.Data.Migrations
                 name: "PostComments",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    PostId = table.Column<int>(type: "int", nullable: false),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Acceptence = table.Column<bool>(type: "bit", nullable: true, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true, defaultValueSql: "CURRENT_TIMESTAMP"),
@@ -232,8 +234,8 @@ namespace AllPurposeForum.Data.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_PostComments_Posts_Id",
-                        column: x => x.Id,
+                        name: "FK_PostComments_Posts_PostId",
+                        column: x => x.PostId,
                         principalTable: "Posts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -277,6 +279,11 @@ namespace AllPurposeForum.Data.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PostComments_PostId",
+                table: "PostComments",
+                column: "PostId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PostComments_UserId",

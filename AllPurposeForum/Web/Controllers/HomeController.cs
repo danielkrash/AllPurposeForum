@@ -3,7 +3,7 @@ using AllPurposeForum.Web.Models;
 using AllPurposeForum.Services; // Add this using directive
 using Microsoft.AspNetCore.Mvc;
 
-namespace AllPurposeForum.Controllers
+namespace AllPurposeForum.Web.Controllers
 {
     public class HomeController : Controller
     {

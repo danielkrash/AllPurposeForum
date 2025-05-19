@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using AllPurposeForum.Data.Models;
 using System.Security.Claims; // Added for User.FindFirstValue
 
-namespace AllPurposeForum.Controllers
+namespace AllPurposeForum.Web.Controllers
 {
     public class PostController : Controller
     {

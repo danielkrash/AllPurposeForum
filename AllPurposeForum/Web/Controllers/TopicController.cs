@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AllPurposeForum.Helpers; // Add this line
 
-namespace AllPurposeForum.Controllers
+namespace AllPurposeForum.Web.Controllers
 {
     public class TopicController : Controller
     {

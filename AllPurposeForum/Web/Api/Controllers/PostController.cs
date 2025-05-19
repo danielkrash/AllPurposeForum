@@ -3,7 +3,7 @@ using AllPurposeForum.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AllPurposeForum.Api.Controllers;
+namespace AllPurposeForum.Web.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

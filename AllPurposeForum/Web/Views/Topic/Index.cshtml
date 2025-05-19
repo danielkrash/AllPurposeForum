@@ -1,13 +1,19 @@
-@model AllPurposeForum.Web.Models.TopicPageViewModel
+@model AllPurposeForum.Web.Models.TopicDetailViewModel
 
 @{ 
-    ViewData["Title"] = Model.TopicTitle;
+    ViewData["Title"] = Model.Topic?.Title ?? "Topic Details";
 }
 
 <div class="container mt-4">
+    <div class="mb-3">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left"></i> Back to All Topics
+        </a>
+    </div>
+
     <div class="topic-header mb-4 p-3 bg-light rounded">
-        <h2>@Model.TopicTitle</h2>
-        <p class="text-muted">@Model.TopicDescription</p>
+        <h2>@Model.Topic?.Title</h2>
+        <p class="text-muted">@Model.Topic?.Description</p>
     </div>
 
     <h3 class="mb-3">Posts</h3>
@@ -17,16 +23,17 @@
         foreach (var post in Model.Posts)
         {
             <div class="card post-card mb-3">
-                <div class="card-header d-flex justify-content-between">
-                    <h5 class="mb-0">@post.Title</h5>
-                    <small class="text-muted">By @post.UserName</small>
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <a href="@Url.RouteUrl("PostDetails", new { postId = post.Id })">@post.Title</a>
+                    </h5>
+                    <small class="text-muted">By @post.AuthorName on @post.CreatedAtFormatted</small>
                 </div>
                 <div class="card-body">
-                    <p class="card-text">@Html.Raw(post.Content)</p> 
+                    <p class="card-text">@post.ContentPreview</p>
                 </div>
-                <div class="card-footer text-muted d-flex justify-content-between">
-                    <span>@post.CommentsCount comment(s)</span>
-                    <span>Posted: @post.CreatedAtFormatted</span>
+                <div class="card-footer text-muted">
+                    <span>Comments: @post.CommentsCount</span>
                 </div>
             </div>
         }

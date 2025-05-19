@@ -34,8 +34,11 @@ namespace AllPurposeForum.Controllers
                 return NotFound();
             }
 
-            var comments = await _postCommentService.GetPostCommentsByPostIdAsync(postId);
-            var commentViewModels = comments.Select(c => new PostCommentViewModel
+            var allComments = await _postCommentService.GetPostCommentsByPostIdAsync(postId);
+            // Filter comments to include only those that are approved
+            var approvedComments = allComments.Where(c => c.isApproved).ToList();
+
+            var commentViewModels = approvedComments.Select(c => new PostCommentViewModel
             {
                 UserName = c.UserName,
                 Content = c.Content,

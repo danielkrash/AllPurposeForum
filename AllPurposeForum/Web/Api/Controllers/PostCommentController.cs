@@ -17,11 +17,23 @@ public class PostCommentController : ControllerBase
     }
 
     [HttpGet("list")]
-    public async Task<Results<Ok<List<PostCommentDTO>>, NotFound<string>>> GetAllPostComments()
+    public async Task<Results<Ok<List<PostCommentDTO>>, NotFound<string>>> GetAllPostComments([FromQuery] int? commentStatus)
     {
         try
         {
             var comments = await _postCommentService.GetAllPostCommentsAsync();
+            if (commentStatus.HasValue)
+            {
+                if (commentStatus.Value == 1)
+                {
+                    comments = comments.Where(c => c.isApproved).ToList();
+                }
+                else if (commentStatus.Value == 0)
+                {
+                    comments = comments.Where(c => !c.isApproved).ToList();
+                }
+                // If commentStatus is not 0 or 1, return all comments (no filtering)
+            }
             return TypedResults.Ok(comments);
         }
         catch (Exception ex)
@@ -106,14 +118,23 @@ public class PostCommentController : ControllerBase
     }
 
     [HttpGet("user/{userId}")]
-    public async Task<Results<Ok<List<PostCommentDTO>>, NotFound<string>>> GetPostCommentsByUserId(string userId)
+    public async Task<Results<Ok<List<PostCommentDTO>>, NotFound<string>>> GetPostCommentsByUserId(string userId, [FromQuery] int? commentStatus)
     {
         try
         {
             var comments = await _postCommentService.GetPostCommentsByUserIdAsync(userId);
-            // The service throws if "Post not found" (which might mean no comments for user)
-            // If it could return an empty list, an additional check for comments.Count == 0 might be desired
-            // to return NotFound explicitly, or just Ok(emptyList).
+            if (commentStatus.HasValue)
+            {
+                if (commentStatus.Value == 1)
+                {
+                    comments = comments.Where(c => c.isApproved).ToList();
+                }
+                else if (commentStatus.Value == 0)
+                {
+                    comments = comments.Where(c => !c.isApproved).ToList();
+                }
+                // If commentStatus is not 0 or 1, return all comments (no filtering)
+            }
             return TypedResults.Ok(comments);
         }
         catch (Exception ex)
@@ -123,12 +144,23 @@ public class PostCommentController : ControllerBase
     }
 
     [HttpGet("post/{postId}")]
-    public async Task<Results<Ok<List<PostCommentDTO>>, NotFound<string>>> GetPostCommentsByPostId(int postId)
+    public async Task<Results<Ok<List<PostCommentDTO>>, NotFound<string>>> GetPostCommentsByPostId(int postId, [FromQuery] int? commentStatus)
     {
         try
         {
             var comments = await _postCommentService.GetPostCommentsByPostIdAsync(postId);
-            // Similar to GetPostCommentsByUserIdAsync, service throws if "Post not found"
+            if (commentStatus.HasValue)
+            {
+                if (commentStatus.Value == 1)
+                {
+                    comments = comments.Where(c => c.isApproved).ToList();
+                }
+                else if (commentStatus.Value == 0)
+                {
+                    comments = comments.Where(c => !c.isApproved).ToList();
+                }
+                // If commentStatus is not 0 or 1, return all comments (no filtering)
+            }
             return TypedResults.Ok(comments);
         }
         catch (Exception ex)

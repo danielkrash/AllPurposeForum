@@ -17,7 +17,7 @@ public class PostService : IPostService
     }
 
     [Authorize(Policy = "RequireAdministratorRole")]
-    public async Task<CreatePostDTO> CreatePost(CreatePostDTO post)
+    public async Task<PostDTO> CreatePost(CreatePostDTO post)
     {
         var a = _context.Posts.Add(new Post
         {
@@ -33,21 +33,32 @@ public class PostService : IPostService
             throw new Exception("Failed to create post");
         }
 
-        return post;
+        return new PostDTO
+        {
+            Id = a.Entity.Id,
+            Title = a.Entity.Title,
+            Content = a.Entity.Content,
+            Nsfw = a.Entity.Nsfw,
+            UserId = a.Entity.ApplicationUserId,
+            TopicId = a.Entity.TopicId,
+        };
     }
 
-    public async Task<PostDTO> GetPostById(int id)
+    public async Task<PostDTO?> GetPostById(int id) // Changed return type to PostDTO?
     {
         var post = await _context.Posts
             .Include(p => p.ApplicationUser)
             .Include(p => p.PostComments)
             .FirstOrDefaultAsync(p => p.Id == id);
+
         if (post == null)
         {
-            throw new Exception("Post not found");
+            return null; // Return null if post is not found
         }
 
-        return await Task.FromResult(new PostDTO
+        // Removed commented out exception throw
+
+        return new PostDTO // No Task.FromResult needed, direct return
         {
             Id = post.Id,
             Title = post.Title,
@@ -55,10 +66,10 @@ public class PostService : IPostService
             Nsfw = post.Nsfw,
             UserId = post.ApplicationUserId,
             TopicId = post.TopicId,
-            UserName = post.ApplicationUser.UserName,
-            CommentsCount = post.PostComments.Count,
+            UserName = post.ApplicationUser?.UserName, // Added null-conditional operator for safety
+            CommentsCount = post.PostComments.Count, // PostComments collection is initialized by EF, so .Count is safe
             CreatedAt = post.CreatedAt
-        });
+        };
     }
 
     public async Task<List<PostDTO>> GetPostsByTopicId(int topicId)
@@ -68,11 +79,6 @@ public class PostService : IPostService
             .Include(p => p.PostComments)
             .Where(p => p.TopicId == topicId)
             .ToListAsync();
-
-        if (posts == null || posts.Count == 0)
-        {
-            throw new Exception("No posts found for this topic");
-        }
 
         return await Task.FromResult(posts.Select(p => new PostDTO
         {
@@ -96,11 +102,6 @@ public class PostService : IPostService
             .Where(p => p.ApplicationUserId == userId)
             .ToListAsync();
 
-        if (posts == null || posts.Count == 0)
-        {
-            throw new Exception("No posts found for this user");
-        }
-
         return await Task.FromResult(posts.Select(p => new PostDTO
         {
             Id = p.Id,
@@ -123,11 +124,6 @@ public class PostService : IPostService
             .Where(p => p.ApplicationUserId == userId && p.TopicId == topicId)
             .ToListAsync();
 
-        if (posts == null || posts.Count == 0)
-        {
-            throw new Exception("No posts found for this user in this topic");
-        }
-
         return await Task.FromResult(posts.Select(p => new PostDTO
         {
             Id = p.Id,
@@ -149,10 +145,6 @@ public class PostService : IPostService
             .Include(p => p.PostComments)
             .ToListAsync();
 
-        if (posts == null || posts.Count == 0)
-        {
-            throw new Exception("No posts found");
-        }
 
         return await Task.FromResult(posts.Select(p => new PostDTO
         {
@@ -203,4 +195,5 @@ public class PostService : IPostService
         var result = await _context.SaveChangesAsync();
         return result > 0;
     }
+
 }

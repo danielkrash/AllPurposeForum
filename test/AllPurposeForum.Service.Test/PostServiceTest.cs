@@ -35,9 +35,17 @@ public class PostServiceTest : IClassFixture<AllPurposeForumFactory>
             Title = "Test Title",
             Nsfw = false,
         };
+        var PostDto = new PostDTO
+        {
+            UserId = "1",
+            TopicId = 1,
+            Content = "Test Content",
+            Title = "Test Title",
+            Nsfw = false,
+        };
         var mockPostService = Substitute.For<IPostService>();
         mockPostService.CreatePost(createPostDto)
-            .Returns(Task.FromResult(createPostDto));
+            .Returns(Task.FromResult(PostDto));
 
 
         // Act

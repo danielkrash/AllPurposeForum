@@ -1,0 +1,43 @@
+@model AllPurposeForum.Web.Models.CreatePostViewModel
+
+@{ 
+    ViewData["Title"] = "Create Post in " + Model.TopicTitle;
+}
+
+<div class="container mt-4">
+    <div class="mb-3">
+        <a asp-controller="Topic" asp-action="Index" asp-route-topicId="@Model.TopicId" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left"></i> Back to Topic: @Model.TopicTitle
+        </a>
+    </div>
+
+    <h2>@ViewData["Title"]</h2>
+
+    <form asp-action="Create" asp-route-topicId="@Model.TopicId" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="TopicId" />
+        <input type="hidden" asp-for="TopicTitle" />
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="form-group mb-3">
+            <label asp-for="Title" class="control-label"></label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+
+        <div class="form-group mb-3">
+            <label asp-for="Content" class="control-label"></label>
+            <textarea asp-for="Content" class="form-control" rows="10"></textarea>
+            <span asp-validation-for="Content" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Create Post</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

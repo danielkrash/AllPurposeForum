@@ -54,14 +54,10 @@ public class TopicService : ITopicService
             })
             .FirstOrDefaultAsync();
 
-        if (topic == null)
-        {
-            throw new Exception("Topic not found");
-        }
         return topic;
     }
 
-    public async Task<CreateTopicDTO> CreateTopicAsync(CreateTopicDTO topicDto)
+    public async Task<TopicDTO> CreateTopicAsync(CreateTopicDTO topicDto)
     {
         var user = await _context.Users.FindAsync(topicDto.UserId);
         if (user == null)
@@ -84,7 +80,18 @@ public class TopicService : ITopicService
         {
             throw new Exception("Failed to create topic");
         }
-        return topicDto; 
+        
+        // Return TopicDTO instead of CreateTopicDTO
+        return new TopicDTO
+        {
+            Id = topic.Id, // The Id of the newly created topic
+            Title = topic.Title,
+            Description = topic.Description,
+            Nsfw = topic.Nsfw,
+            UserId = topic.ApplicationUserId,
+            UserName = topic.ApplicationUser?.UserName ?? "Unknown User",
+            PostsCount = 0 // A new topic has no posts initially
+        };
     }
 
     public async Task<TopicDTO> UpdateTopicAsync(UpdateTopicDTO topicDto, int id)

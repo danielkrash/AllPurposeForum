@@ -1,30 +1,83 @@
 ﻿@model IEnumerable<AllPurposeForum.Data.DTO.TopicDTO>
+@using AllPurposeForum.Data.Models
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
 @{
     ViewData["Title"] = "Topics";
     int hueCounter = 0; // Counter for generating different hues
 }
 
 <div class="container">
-    <h1 class="text-center my-4">@ViewData["Title"]</h1>
+    <div class="d-flex justify-content-between align-items-center my-4">
+        <h1 class="mb-0">@ViewData["Title"]</h1>
+        @if (SignInManager.IsSignedIn(User))
+        {
+            <a asp-controller="Topic" asp-action="Create" class="btn btn-primary">Create New Topic</a>
+        }
+    </div>
     <div class="row row-cols-1 row-cols-md-2 g-4">
         @if (Model != null && Model.Any())
         {
             foreach (var topic in Model)
             {
                 var hue = (hueCounter++ * 60) % 360; // Generate a new hue for each card
+                var currentUser = await UserManager.GetUserAsync(User);
+                var isOwner = currentUser != null && topic.UserId == currentUser.Id;
+                var isAdmin = User.IsInRole("Admin");
+                var isManager = User.IsInRole("Manager");
+
                 <div class="col">
-                    <a asp-controller="Topic" asp-action="Index" asp-route-topicId="@topic.Id" class="text-decoration-none">
-                        <div class="card h-100 topic-card" style="--bg-hue: @hue;">
-                            <div class="card-body">
-                                <h5 class="card-title">@topic.Title</h5>
-                                <p class="card-text">@topic.Description</p>
+                    <div class="card h-100 topic-card" style="--bg-hue: @hue;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <a href="@Url.Action("Index", "Topic", new { topicId = topic.Id })"
+                                   class="text-decoration-none topic-link flex-grow-1"
+                                   data-nsfw="@topic.Nsfw.ToString().ToLower()"
+                                   data-topic-id="@topic.Id"
+                                   data-topic-title="@topic.Title">
+                                    <h5 class="card-title mb-0">@topic.Title</h5>
+                                </a>
+                                @if (topic.Nsfw)
+                                {
+                                    <span class="badge bg-danger ms-2 me-2">NSFW</span>
+                                }
+
+                                @if (SignInManager.IsSignedIn(User) && (isOwner || isAdmin || isManager))
+                                {
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton_@topic.Id" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Actions
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton_@topic.Id">
+                                            <li>
+                                                <a class="dropdown-item" asp-controller="Topic" asp-action="EditTopic" asp-route-topicId="@topic.Id">Edit</a>
+                                            </li>
+                                            <li>
+                                                <form asp-controller="Topic" asp-action="DeleteTopic" method="post" onsubmit="return confirm('Are you sure you want to delete this topic?');">
+                                                    <input type="hidden" name="topicId" value="@topic.Id" />
+                                                    <button type="submit" class="dropdown-item text-danger">Delete</button>
+                                                </form>
+                                            </li>
+                                            @* Add other actions like Edit here if needed *@
+                                        </ul>
+                                    </div>
+                                }
                             </div>
-                            <div class="card-footer d-flex justify-content-between align-items-center">
-                                <small class="text-muted">Created by: @topic.UserName</small>
-                                <small class="text-muted">Posts: @topic.PostsCount</small>
-                            </div>
+                            <a href="@Url.Action("Index", "Topic", new { topicId = topic.Id })"
+                               class="text-decoration-none topic-link"
+                               data-nsfw="@topic.Nsfw.ToString().ToLower()"
+                               data-topic-id="@topic.Id"
+                               data-topic-title="@topic.Title">
+                                <p class="card-text mt-2">@topic.Description</p>
+                            </a>
                         </div>
-                    </a>
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                            <small class="text-muted">Created by: @topic.UserName</small>
+                            <small class="text-muted">Posts: @topic.PostsCount</small>
+                        </div>
+                    </div>
                 </div>
             }
         }
@@ -42,6 +95,10 @@
         transition: transform .2s ease-in-out, box-shadow .2s ease-in-out;
         background-color: hsl(var(--bg-hue, 200), 50%, 95%); /* Default hue if not set */
         border: 1px solid hsl(var(--bg-hue, 200), 50%, 85%);
+        position: relative; /* Important for z-index context and child positioning */
+        overflow: visible;  /* Allow content (like dropdowns) to go outside bounds */
+        /* Add margin to bottom to allow dropdown menu space */
+        margin-bottom: 1rem;
     }
 
     .topic-card:hover {
@@ -49,9 +106,76 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         background-color: hsl(var(--bg-hue, 200), 60%, 90%);
         border-color: hsl(var(--bg-hue, 200), 60%, 80%);
+        z-index: 10; /* Elevate the entire card on hover */
+    }
+
+    .topic-card .card-body {
+        overflow: visible; /* Ensure card body doesn't clip the dropdown */
+        position: relative; /* Stacking context for children if needed */
     }
 
     .topic-card .card-title {
         color: hsl(var(--bg-hue, 200), 70%, 40%);
     }
+
+    .topic-card .dropdown {
+        position: relative; /* Ensures z-index is applied correctly */
+        z-index: 1050;      /* High z-index for the dropdown container */
+    }
+
+    /* Ensure dropdown menu is on top and can overflow */
+    .topic-card .dropdown-menu {
+        z-index: 1060 !important;      /* Even higher z-index for the menu itself */
+        position: absolute !important; /* Force absolute positioning */
+        transform: none !important;    /* Reset any transforms that might interfere */
+    }
+
+    /* Ensure container allows overflow for dropdowns */
+    .row {
+        overflow: visible;
+    }
+
+    .col {
+        overflow: visible;
+    }
+
+    /* Fix for ensuring dropdowns can extend beyond card boundaries */
+    .container {
+        overflow: visible;
+    }
+
+    /* Add extra space at the bottom of the card grid to accommodate dropdowns */
+    .row.g-4 {
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+    }
 </style>
+
+@section Scripts {
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            const topicLinks = document.querySelectorAll('.topic-link');
+            topicLinks.forEach(link => {
+                link.addEventListener('click', function (event) {
+                    const isNsfw = this.dataset.nsfw === 'true';
+                    const topicTitle = this.dataset.topicTitle;
+                    if (isNsfw) {
+                        event.preventDefault(); // Prevent default navigation
+                        if (confirm(`The topic "${topicTitle}" is marked as NSFW. Do you want to proceed?`)) {
+                            window.location.href = this.href; // Navigate if confirmed
+                        }
+                    }
+                });
+            });
+
+            // Additional script to handle dropdown positioning
+            document.addEventListener('shown.bs.dropdown', function (event) {
+                const dropdownMenu = event.target.querySelector('.dropdown-menu');
+                if (dropdownMenu) {
+                    // Ensure the dropdown is visible and properly positioned
+                    dropdownMenu.style.zIndex = '1060';
+                }
+            });
+        });
+    </script>
+}

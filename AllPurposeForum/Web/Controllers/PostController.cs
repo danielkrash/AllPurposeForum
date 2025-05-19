@@ -102,7 +102,8 @@ namespace AllPurposeForum.Web.Controllers
             var post = await _postService.GetPostById(postId);
             if (post == null)
             {
-                return NotFound();
+                Response.StatusCode = 404;
+                return View("NotFound"); // Return the custom NotFound view
             }
 
             var allComments = await _postCommentService.GetPostCommentsByPostIdAsync(postId);
@@ -123,7 +124,8 @@ namespace AllPurposeForum.Web.Controllers
                 UserName = c.UserName,
                 Content = c.Content,
                 CreatedAtFormatted = Utils.TimeAgo(c.CreatedAt),
-                IsApproved = c.isApproved 
+                IsApproved = c.isApproved,
+                UserId = c.UserId // Added UserId
             }).ToList();
 
             var viewModel = new PostDetailViewModel
@@ -193,7 +195,8 @@ namespace AllPurposeForum.Web.Controllers
                 UserName = c.UserName,
                 Content = c.Content,
                 CreatedAtFormatted = Utils.TimeAgo(c.CreatedAt),
-                IsApproved = c.isApproved
+                IsApproved = c.isApproved,
+                UserId = c.UserId // Added UserId
             }).ToList();
 
             var viewModel = new PostDetailViewModel

@@ -23,29 +23,61 @@
             foreach (var topic in Model)
             {
                 var hue = (hueCounter++ * 60) % 360; // Generate a new hue for each card
+                var currentUser = await UserManager.GetUserAsync(User);
+                var isOwner = currentUser != null && topic.UserId == currentUser.Id;
+                var isAdmin = User.IsInRole("Admin");
+                var isManager = User.IsInRole("Manager");
+
                 <div class="col">
-                    <a href="@Url.Action("Index", "Topic", new { topicId = topic.Id })" 
-                       class="text-decoration-none topic-link"
-                       data-nsfw="@topic.Nsfw.ToString().ToLower()"
-                       data-topic-id="@topic.Id"
-                       data-topic-title="@topic.Title">
-                        <div class="card h-100 topic-card" style="--bg-hue: @hue;">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start">
+                    <div class="card h-100 topic-card" style="--bg-hue: @hue;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <a href="@Url.Action("Index", "Topic", new { topicId = topic.Id })"
+                                   class="text-decoration-none topic-link flex-grow-1"
+                                   data-nsfw="@topic.Nsfw.ToString().ToLower()"
+                                   data-topic-id="@topic.Id"
+                                   data-topic-title="@topic.Title">
                                     <h5 class="card-title mb-0">@topic.Title</h5>
-                                    @if (topic.Nsfw)
-                                    {
-                                        <span class="badge bg-danger ms-2">NSFW</span>
-                                    }
-                                </div>
+                                </a>
+                                @if (topic.Nsfw)
+                                {
+                                    <span class="badge bg-danger ms-2 me-2">NSFW</span>
+                                }
+
+                                @if (SignInManager.IsSignedIn(User) && (isOwner || isAdmin || isManager))
+                                {
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton_@topic.Id" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Actions
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton_@topic.Id">
+                                            <li>
+                                                <a class="dropdown-item" asp-controller="Topic" asp-action="EditTopic" asp-route-topicId="@topic.Id">Edit</a>
+                                            </li>
+                                            <li>
+                                                <form asp-controller="Topic" asp-action="DeleteTopic" method="post" onsubmit="return confirm('Are you sure you want to delete this topic?');">
+                                                    <input type="hidden" name="topicId" value="@topic.Id" />
+                                                    <button type="submit" class="dropdown-item text-danger">Delete</button>
+                                                </form>
+                                            </li>
+                                            @* Add other actions like Edit here if needed *@
+                                        </ul>
+                                    </div>
+                                }
+                            </div>
+                            <a href="@Url.Action("Index", "Topic", new { topicId = topic.Id })"
+                               class="text-decoration-none topic-link"
+                               data-nsfw="@topic.Nsfw.ToString().ToLower()"
+                               data-topic-id="@topic.Id"
+                               data-topic-title="@topic.Title">
                                 <p class="card-text mt-2">@topic.Description</p>
-                            </div>
-                            <div class="card-footer d-flex justify-content-between align-items-center">
-                                <small class="text-muted">Created by: @topic.UserName</small>
-                                <small class="text-muted">Posts: @topic.PostsCount</small>
-                            </div>
+                            </a>
                         </div>
-                    </a>
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                            <small class="text-muted">Created by: @topic.UserName</small>
+                            <small class="text-muted">Posts: @topic.PostsCount</small>
+                        </div>
+                    </div>
                 </div>
             }
         }
@@ -63,6 +95,10 @@
         transition: transform .2s ease-in-out, box-shadow .2s ease-in-out;
         background-color: hsl(var(--bg-hue, 200), 50%, 95%); /* Default hue if not set */
         border: 1px solid hsl(var(--bg-hue, 200), 50%, 85%);
+        position: relative; /* Important for z-index context and child positioning */
+        overflow: visible;  /* Allow content (like dropdowns) to go outside bounds */
+        /* Add margin to bottom to allow dropdown menu space */
+        margin-bottom: 1rem;
     }
 
     .topic-card:hover {
@@ -70,10 +106,48 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         background-color: hsl(var(--bg-hue, 200), 60%, 90%);
         border-color: hsl(var(--bg-hue, 200), 60%, 80%);
+        z-index: 10; /* Elevate the entire card on hover */
+    }
+
+    .topic-card .card-body {
+        overflow: visible; /* Ensure card body doesn't clip the dropdown */
+        position: relative; /* Stacking context for children if needed */
     }
 
     .topic-card .card-title {
         color: hsl(var(--bg-hue, 200), 70%, 40%);
+    }
+
+    .topic-card .dropdown {
+        position: relative; /* Ensures z-index is applied correctly */
+        z-index: 1050;      /* High z-index for the dropdown container */
+    }
+
+    /* Ensure dropdown menu is on top and can overflow */
+    .topic-card .dropdown-menu {
+        z-index: 1060 !important;      /* Even higher z-index for the menu itself */
+        position: absolute !important; /* Force absolute positioning */
+        transform: none !important;    /* Reset any transforms that might interfere */
+    }
+
+    /* Ensure container allows overflow for dropdowns */
+    .row {
+        overflow: visible;
+    }
+
+    .col {
+        overflow: visible;
+    }
+
+    /* Fix for ensuring dropdowns can extend beyond card boundaries */
+    .container {
+        overflow: visible;
+    }
+
+    /* Add extra space at the bottom of the card grid to accommodate dropdowns */
+    .row.g-4 {
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
     }
 </style>
 
@@ -92,6 +166,15 @@
                         }
                     }
                 });
+            });
+
+            // Additional script to handle dropdown positioning
+            document.addEventListener('shown.bs.dropdown', function (event) {
+                const dropdownMenu = event.target.querySelector('.dropdown-menu');
+                if (dropdownMenu) {
+                    // Ensure the dropdown is visible and properly positioned
+                    dropdownMenu.style.zIndex = '1060';
+                }
             });
         });
     </script>

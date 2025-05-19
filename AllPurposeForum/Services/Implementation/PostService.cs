@@ -44,18 +44,21 @@ public class PostService : IPostService
         };
     }
 
-    public async Task<PostDTO> GetPostById(int id)
+    public async Task<PostDTO?> GetPostById(int id) // Changed return type to PostDTO?
     {
         var post = await _context.Posts
             .Include(p => p.ApplicationUser)
             .Include(p => p.PostComments)
             .FirstOrDefaultAsync(p => p.Id == id);
+
         if (post == null)
         {
-            throw new Exception("Post not found");
+            return null; // Return null if post is not found
         }
 
-        return await Task.FromResult(new PostDTO
+        // Removed commented out exception throw
+
+        return new PostDTO // No Task.FromResult needed, direct return
         {
             Id = post.Id,
             Title = post.Title,
@@ -63,10 +66,10 @@ public class PostService : IPostService
             Nsfw = post.Nsfw,
             UserId = post.ApplicationUserId,
             TopicId = post.TopicId,
-            UserName = post.ApplicationUser.UserName,
-            CommentsCount = post.PostComments.Count,
+            UserName = post.ApplicationUser?.UserName, // Added null-conditional operator for safety
+            CommentsCount = post.PostComments.Count, // PostComments collection is initialized by EF, so .Count is safe
             CreatedAt = post.CreatedAt
-        });
+        };
     }
 
     public async Task<List<PostDTO>> GetPostsByTopicId(int topicId)

@@ -1,0 +1,49 @@
+@model AllPurposeForum.Web.Models.EditCommentViewModel
+
+@{
+    ViewData["Title"] = "Edit Comment";
+}
+
+<div class="container mt-4">
+    <div class="mb-3">
+        <a asp-controller="Post" asp-action="Index" asp-route-id="@Model.PostId" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left"></i> Back to Post: @(Model.PostTitle ?? "Post")
+        </a>
+    </div>
+
+    <h2>@ViewData["Title"]</h2>
+
+    @if (!string.IsNullOrEmpty(Model.OriginalCommentContentPreview))
+    {
+        <div class="alert alert-info">
+            <p class="mb-1"><strong>Original comment:</strong></p>
+            <p class="mb-0"><em>@Model.OriginalCommentContentPreview...</em></p>
+        </div>
+    }
+
+    <form asp-action="Edit" asp-controller="PostComment" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="PostId" />
+        <input type="hidden" asp-for="PostTitle" />
+        <input type="hidden" asp-for="OriginalCommentContentPreview" />
+        @* IsApproved is passed from the GET action to be available if needed, but won't be directly used for submission for approval status change here. The ML model will decide. *@
+        <input type="hidden" asp-for="IsApproved" /> 
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="form-group mb-3">
+            <label asp-for="Content" class="control-label"></label>
+            <textarea asp-for="Content" class="form-control" rows="5"></textarea>
+            <span asp-validation-for="Content" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

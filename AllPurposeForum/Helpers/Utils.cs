@@ -26,7 +26,7 @@ namespace AllPurposeForum.Helpers
                 return "Unknown";
             }
 
-            var timeSpan = DateTime.UtcNow - dateTime.Value;
+            var timeSpan = DateTime.UtcNow.ToLocalTime() - dateTime.Value;
 
             if (timeSpan.TotalSeconds < 60)
             {

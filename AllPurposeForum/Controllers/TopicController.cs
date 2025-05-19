@@ -18,7 +18,7 @@ namespace AllPurposeForum.Controllers
             _postService = postService;
         }
 
-        [HttpGet("Topics/{topicId:int}")]
+        [HttpGet("Topics/{topicId:int}", Name = "TopicDetails")]
         public async Task<IActionResult> Index(int topicId)
         {
             var topic = await _topicService.GetTopicByIdAsync(topicId);
@@ -27,23 +27,23 @@ namespace AllPurposeForum.Controllers
                 return NotFound();
             }
 
-            var posts = await _postService.GetPostsByTopicId(topicId);
+            var postsFromService = await _postService.GetPostsByTopicId(topicId);
 
-            var viewModel = new TopicPageViewModel
+            var postViewModels = postsFromService.Select(p => new PostViewModel
             {
-                TopicId = topic.Id,
-                TopicTitle = topic.Title,
-                TopicDescription = topic.Description,
-                Posts = posts.Select(p => new PostViewModel
-                {
-                    Id = p.Id,
-                    Title = p.Title,
-                    Content = p.Content,
-                    UserName = p.UserName,
-                    CommentsCount = p.CommentsCount,
-                    CreatedAt = p.CreatedAt,
-                    CreatedAtFormatted = Utils.TimeAgo(p.CreatedAt)
-                }).ToList()
+                Id = p.Id,
+                Title = p.Title,
+                AuthorName = p.UserName,
+                CreatedAtFormatted = Utils.TimeAgo(p.CreatedAt),
+                CommentsCount = p.CommentsCount,
+                TopicId = p.TopicId,
+                ContentPreview = p.Content.Length > 100 ? p.Content.Substring(0, 100) + "..." : p.Content // Simple preview
+            }).ToList();
+
+            var viewModel = new TopicDetailViewModel
+            {
+                Topic = topic,
+                Posts = postViewModels
             };
 
             return View(viewModel);

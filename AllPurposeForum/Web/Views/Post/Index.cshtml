@@ -1,0 +1,175 @@
+@model AllPurposeForum.Web.Models.PostDetailViewModel
+@using AllPurposeForum.Data.Models
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = Model.Post.Title;
+    var currentUser = await UserManager.GetUserAsync(User);
+}
+
+@* Removed Quill.js CSS and JS links *@
+
+<style>
+    .post-container {
+        border: 1px solid #ddd;
+        padding: 20px;
+        margin-bottom: 30px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+    }
+
+    .post-header {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+
+    .post-title {
+        font-size: 2em;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .post-meta {
+        font-size: 0.9em;
+        color: #777;
+        margin-bottom: 15px;
+    }
+
+    .post-content {
+        font-size: 1.1em;
+        line-height: 1.6;
+        color: #444;
+        margin-bottom: 20px;
+        /* Ensure pre-wrap for plain text content from textarea */
+        white-space: pre-wrap;
+    }
+
+    .comments-section {
+        margin-top: 30px;
+    }
+
+    .comment {
+        border: 1px solid #e1e1e1;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        background-color: #fff;
+        display: flex; /* Use flexbox for layout */
+        align-items: flex-start; /* Align items to the top */
+    }
+
+    /* Removed .comment-avatar CSS rule */
+
+    .comment-body {
+        flex-grow: 1; /* Allow body to take remaining space */
+    }
+    
+    .comment-author {
+        font-weight: bold;
+        color: #007bff;
+        margin-right: 8px;
+    }
+
+    .comment-date {
+        font-size: 0.85em;
+        color: #888;
+    }
+
+    .comment-text {
+        margin-top: 5px;
+        font-size: 1em;
+        line-height: 1.5;
+        /* Ensure pre-wrap for plain text content from textarea */
+        white-space: pre-wrap;
+    }
+
+    .comment-form {
+        margin-top: 20px;
+        padding: 15px;
+        border: 1px solid #e1e1e1;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+    }
+
+    /* Removed #editor-container CSS rule as it's no longer used */
+
+    .btn-submit-comment {
+        margin-top: 10px;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="mb-3">
+        <a asp-controller="Topic" asp-action="Index" asp-route-topicId="@Model.Post.TopicId" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left"></i> Back to Topic
+        </a>
+    </div>
+
+    <div class="post-container">
+        <div class="post-header">
+            <h1 class="post-title">@Model.Post.Title</h1>
+        </div>
+        <div class="post-meta">
+            <span>By @Model.Post.UserName</span> |
+            <span>Posted: @Model.PostCreatedAtFormatted</span> |
+            <span>Comments: @Model.Post.CommentsCount</span>
+        </div>
+        <div class="post-content">
+            @Html.Raw(Model.Post.Content)
+        </div>
+    </div>
+
+    <div class="comments-section">
+        <h3>Comments</h3>
+        @if (Model.Comments.Any())
+        {
+            foreach (var comment in Model.Comments)
+            {
+                <div class="comment">
+                    @* Removed avatar img tag: <img src="https://via.placeholder.com/40" alt="User Avatar" class="comment-avatar"> *@
+                    <div class="comment-body">
+                        <div>
+                            <span class="comment-author">@comment.UserName</span>
+                            <span class="comment-date">@comment.CreatedAtFormatted</span>
+                        </div>
+                        <div class="comment-text">@Html.Raw(comment.Content)</div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p>No comments yet. Be the first to comment!</p>
+        }
+    </div>
+
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <div class="comment-form mt-4">
+            <h4>Leave a Comment</h4>
+            <form id="comment-form" asp-controller="Post" asp-action="AddComment" asp-route-postId="@Model.Post.Id" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="NewComment.PostId" />
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="form-group">
+                    @* Replaced Quill editor with a standard textarea *@
+                    <textarea asp-for="NewComment.Content" class="form-control" rows="5" placeholder="Enter your comment here..."></textarea>
+                    <span asp-validation-for="NewComment.Content" class="text-danger"></span>
+                </div>
+                <button type="submit" class="btn btn-primary btn-submit-comment">Submit Comment</button>
+            </form>
+        </div>
+    }
+    else
+    {
+        <div class="mt-4">
+            <p><a asp-area="Identity" asp-page="/Account/Login" asp-route-returnUrl="@Url.RouteUrl("PostDetails", new { postId = Model.Post.Id })">Log in</a> to post a comment.</p>
+        </div>
+    }
+</div>
+
+@* Removed @section Scripts block for Quill.js initialization *@

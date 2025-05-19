@@ -43,8 +43,8 @@
         "Version": 1,
         "Type": "Trial",
         "TrainerName": "TextClassificationMulti",
-        "Score": 0.83591146704840436,
-        "RuntimeInSeconds": 339.881,
+        "Score": 0.88273260753280258,
+        "RuntimeInSeconds": 68.378,
         "Parameter": {
           "_SCHEMA_": "e0 * e1 * e2",
           "e0": {
@@ -82,14 +82,14 @@
   "TrainingOption": {
     "Version": 1,
     "Type": "TextClassficationTrainingOption",
-    "TrainingTime": 10,
+    "TrainingTime": 2147483647,
     "OptimizeMetric": "MacroAccuracy",
     "LabelColumn": "PredictedLable",
     "TextColumn": "Sentiment",
     "ValidationOption": {
       "Version": 0,
-      "Type": "CrossValidationValidationOption",
-      "NumberOfFolds": 5
+      "Type": "TrainValidateSplitValidationOption",
+      "SplitRatio": 0.2
     }
   }
 }

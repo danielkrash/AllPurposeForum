@@ -31,7 +31,8 @@ namespace AllPurposeForum
             var mlContext = new MLContext();
 
             var data = LoadIDataViewFromFile(mlContext, inputDataFilePath, separatorChar, hasHeader, allowQuoting);
-            var model = RetrainModel(mlContext, data);
+            var trainTestSplit = mlContext.Data.TrainTestSplit(data, testFraction: 0.2);
+            var model = RetrainModel(mlContext, trainTestSplit.TrainSet);
             SaveModel(mlContext, model, data, outputModelPath);
         }
 

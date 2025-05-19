@@ -3,8 +3,10 @@ namespace AllPurposeForum.Web.Models
 {
     public class PostCommentViewModel
     {
-        public string UserName { get; set; }
-        public string Content { get; set; }
-        public string CreatedAtFormatted { get; set; }
+        public int Id { get; set; } 
+        public string? UserName { get; set; }
+        public string? Content { get; set; }
+        public string? CreatedAtFormatted { get; set; }
+        public bool IsApproved { get; set; } 
     }
 }

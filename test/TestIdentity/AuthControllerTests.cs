@@ -1,4 +1,4 @@
-﻿using AllPurposeForum.Api.Controllers;
+﻿using AllPurposeForum.Web.Api.Controllers;
 using AllPurposeForum.Data.DTO;
 using AllPurposeForum.Data;
 using Microsoft.AspNetCore.Identity;

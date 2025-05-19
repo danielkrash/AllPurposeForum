@@ -14,7 +14,11 @@ using AllPurposeForum.Services.Implementation;
 using Microsoft.AspNetCore.Mvc.Razor;
 using AllPurposeForum.Helpers; // Add this line
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions()
+{
+    WebRootPath = "Web/static/wwwroot",
+    Args = args
+});
 
 
 // Add services to the container.
@@ -75,6 +79,7 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -118,3 +123,4 @@ app.Run();
 public partial class Program
 {
 }
+

@@ -78,5 +78,11 @@ namespace AllPurposeForum.Helpers
 
             return TypedResults.ValidationProblem(errorDictionary);
         }
+
+        public static bool IsCommentAcceptable(float predictionScore)
+        {
+            // Current logic: if score is greater than 0.5, it's acceptable.
+            return predictionScore > 0.5f;
+        }
     }
 }

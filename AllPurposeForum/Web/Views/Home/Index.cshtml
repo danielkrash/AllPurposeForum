@@ -1,11 +1,22 @@
 ﻿@model IEnumerable<AllPurposeForum.Data.DTO.TopicDTO>
+@using AllPurposeForum.Data.Models
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
 @{
     ViewData["Title"] = "Topics";
     int hueCounter = 0; // Counter for generating different hues
 }
 
 <div class="container">
-    <h1 class="text-center my-4">@ViewData["Title"]</h1>
+    <div class="d-flex justify-content-between align-items-center my-4">
+        <h1 class="mb-0">@ViewData["Title"]</h1>
+        @if (SignInManager.IsSignedIn(User))
+        {
+            <a asp-controller="Topic" asp-action="Create" class="btn btn-primary">Create New Topic</a>
+        }
+    </div>
     <div class="row row-cols-1 row-cols-md-2 g-4">
         @if (Model != null && Model.Any())
         {
@@ -13,11 +24,21 @@
             {
                 var hue = (hueCounter++ * 60) % 360; // Generate a new hue for each card
                 <div class="col">
-                    <a asp-controller="Topic" asp-action="Index" asp-route-topicId="@topic.Id" class="text-decoration-none">
+                    <a href="@Url.Action("Index", "Topic", new { topicId = topic.Id })" 
+                       class="text-decoration-none topic-link"
+                       data-nsfw="@topic.Nsfw.ToString().ToLower()"
+                       data-topic-id="@topic.Id"
+                       data-topic-title="@topic.Title">
                         <div class="card h-100 topic-card" style="--bg-hue: @hue;">
                             <div class="card-body">
-                                <h5 class="card-title">@topic.Title</h5>
-                                <p class="card-text">@topic.Description</p>
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <h5 class="card-title mb-0">@topic.Title</h5>
+                                    @if (topic.Nsfw)
+                                    {
+                                        <span class="badge bg-danger ms-2">NSFW</span>
+                                    }
+                                </div>
+                                <p class="card-text mt-2">@topic.Description</p>
                             </div>
                             <div class="card-footer d-flex justify-content-between align-items-center">
                                 <small class="text-muted">Created by: @topic.UserName</small>
@@ -55,3 +76,23 @@
         color: hsl(var(--bg-hue, 200), 70%, 40%);
     }
 </style>
+
+@section Scripts {
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            const topicLinks = document.querySelectorAll('.topic-link');
+            topicLinks.forEach(link => {
+                link.addEventListener('click', function (event) {
+                    const isNsfw = this.dataset.nsfw === 'true';
+                    const topicTitle = this.dataset.topicTitle;
+                    if (isNsfw) {
+                        event.preventDefault(); // Prevent default navigation
+                        if (confirm(`The topic "${topicTitle}" is marked as NSFW. Do you want to proceed?`)) {
+                            window.location.href = this.href; // Navigate if confirmed
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+}

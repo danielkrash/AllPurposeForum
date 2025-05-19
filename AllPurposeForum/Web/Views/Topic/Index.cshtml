@@ -1,4 +1,7 @@
 @model AllPurposeForum.Web.Models.TopicDetailViewModel
+@using Microsoft.AspNetCore.Identity
+@using AllPurposeForum.Data.Models
+@inject SignInManager<ApplicationUser> SignInManager
 
 @{ 
     ViewData["Title"] = Model.Topic?.Title ?? "Topic Details";
@@ -16,7 +19,15 @@
         <p class="text-muted">@Model.Topic?.Description</p>
     </div>
 
-    <h3 class="mb-3">Posts</h3>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="mb-0">Posts</h3>
+        @if (SignInManager.IsSignedIn(User) && Model.Topic != null)
+        {
+            <a asp-controller="Post" asp-action="Create" asp-route-topicId="@Model.Topic.Id" class="btn btn-success btn-sm">
+                <i class="fas fa-plus"></i> Create New Post
+            </a>
+        }
+    </div>
 
     @if (Model.Posts != null && Model.Posts.Any())
     {

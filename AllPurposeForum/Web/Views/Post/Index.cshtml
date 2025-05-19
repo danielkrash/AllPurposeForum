@@ -9,7 +9,6 @@
     var currentUser = await UserManager.GetUserAsync(User);
 }
 
-@* Removed Quill.js CSS and JS links *@
 
 <style>
     .post-container {
@@ -94,8 +93,6 @@
         background-color: #f8f9fa;
     }
 
-    /* Removed #editor-container CSS rule as it's no longer used */
-
     .btn-submit-comment {
         margin-top: 10px;
     }
@@ -134,8 +131,29 @@
                         <div>
                             <span class="comment-author">@comment.UserName</span>
                             <span class="comment-date">@comment.CreatedAtFormatted</span>
+                            @if (!comment.IsApproved)
+                            {
+                                <span class="text-warning ml-2" title="This comment is not approved"><i class="fas fa-exclamation-triangle"></i></span>
+                            }
                         </div>
                         <div class="comment-text">@Html.Raw(comment.Content)</div>
+                        @if (User.IsInRole("Manager"))
+                        {
+                            @if (comment.IsApproved)
+                            {
+                                <form asp-action="MarkCommentAsNotApproved" asp-controller="PostComment" method="post">
+                                    <input type="hidden" name="commentId" value="@comment.Id" />
+                                    <button type="submit" class="btn btn-sm btn-warning">Mark as Not Approved</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="MarkCommentAsApproved" asp-controller="PostComment" method="post">
+                                    <input type="hidden" name="commentId" value="@comment.Id" />
+                                    <button type="submit" class="btn btn-sm btn-success">Mark as Approved</button>
+                                </form>
+                            }
+                        }
                     </div>
                 </div>
             }
@@ -172,4 +190,4 @@
     }
 </div>
 
-@* Removed @section Scripts block for Quill.js initialization *@
+

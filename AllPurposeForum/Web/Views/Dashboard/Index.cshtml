@@ -1,0 +1,124 @@
+@model AllPurposeForum.Web.Models.DashboardViewModel
+
+@{ 
+    Layout = "_AdminManagerLayout";
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<h2>@ViewData["Title"]</h2>
+<p>Welcome to the dashboard. Here you can manage users, content, and other administrative tasks.</p>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header">Total Users</div>
+            <div class="card-body">
+                <h4 class="card-title">@Model.TotalUsers</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Total Topics</div>
+            <div class="card-body">
+                <h4 class="card-title">@Model.TotalTopics</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-header">Total Posts</div>
+            <div class="card-body">
+                <h4 class="card-title">@Model.TotalPosts</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-header">Total Comments</div>
+            <div class="card-body">
+                <h4 class="card-title">@Model.TotalComments</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                Site Activity Overview
+            </div>
+            <div class="card-body">
+                <canvas id="siteActivityChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                Quick Actions
+            </div>
+            <div class="card-body">
+                @if (User.IsInRole("Admin"))
+                {
+                    <p><a asp-controller="UserManagement" asp-action="Index" class="btn btn-primary w-100 mb-2">Manage Users</a></p>
+                }
+                @if (User.IsInRole("Manager"))
+                {
+                    <p><a asp-controller="Moderation" asp-action="Index" class="btn btn-info w-100 mb-2">Moderate Content</a></p>
+                }
+                <p><a asp-controller="Home" asp-action="Index" class="btn btn-secondary w-100">Back to Main Site</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var ctx = document.getElementById('siteActivityChart').getContext('2d');
+            var siteActivityChart = new Chart(ctx, {
+                type: 'bar', // or 'line', 'pie', etc.
+                data: {
+                    labels: @Html.Raw(Json.Serialize(Model.ChartLabels)),
+                    datasets: [{
+                        label: 'Total Count',
+                        data: @Html.Raw(Json.Serialize(Model.ChartData)),
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.6)', // Blue for Users
+                            'rgba(75, 192, 192, 0.6)', // Green for Topics
+                            'rgba(255, 206, 86, 0.6)', // Yellow for Posts
+                            'rgba(255, 99, 132, 0.6)'  // Red for Comments
+                        ],
+                        borderColor: [
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0 // Ensure y-axis ticks are whole numbers
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false // Hide legend as it's a single dataset bar chart
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

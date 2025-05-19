@@ -46,7 +46,8 @@ namespace AllPurposeForum.Web.Controllers // Ensured namespace is correct
                 CreatedAtFormatted = Utils.TimeAgo(p.CreatedAt),
                 CommentsCount = p.CommentsCount,
                 TopicId = p.TopicId,
-                ContentPreview = p.Content.Length > 100 ? p.Content.Substring(0, 100) + "..." : p.Content // Simple preview
+                ContentPreview = p.Content.Length > 100 ? p.Content.Substring(0, 100) + "..." : p.Content, // Simple preview
+                UserId = p.UserId // Populate UserId
             }).ToList();
 
             var viewModel = new TopicDetailViewModel

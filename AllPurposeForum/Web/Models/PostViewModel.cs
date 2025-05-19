@@ -9,5 +9,6 @@ namespace AllPurposeForum.Web.Models
         public int CommentsCount { get; set; }
         public int TopicId { get; set; }
         public string? ContentPreview { get; set; } // For a short preview on the topic page
+        public string? UserId { get; set; } // Added UserId for ownership checks
     }
 }

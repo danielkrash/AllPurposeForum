@@ -11,4 +11,7 @@ public interface IPostCommentService
     public Task<bool> DeletePostCommentAsync(int id);
     public Task<List<PostCommentDTO>> GetPostCommentsByUserIdAsync(string userId);
     public Task<List<PostCommentDTO>> GetPostCommentsByPostIdAsync(int postId);
+    public Task<List<UnapprovedCommentDTO>> GetUnapprovedCommentsAsync();
+    public Task ApproveCommentAsync(int commentId);
+    public Task RejectCommentAsync(int commentId);
 }

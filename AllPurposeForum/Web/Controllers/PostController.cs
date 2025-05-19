@@ -209,5 +209,166 @@ namespace AllPurposeForum.Web.Controllers
 
             return View("Index", viewModel); // Explicitly return the Index view
         }
+
+        [HttpPost]
+        [Authorize] // Ensure only authorized users can delete
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePost(int postId, int topicId) // Added topicId to redirect back correctly
+        {
+            var post = await _postService.GetPostById(postId);
+            if (post == null)
+            {
+                TempData["ErrorMessage"] = "Post not found.";
+                // Redirect to topic page if topicId is valid, otherwise to home
+                return topicId > 0 ? RedirectToAction("Index", "Topic", new { topicId = topicId }) : RedirectToAction("Index", "Home");
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            bool isOwner = currentUser != null && post.UserId == currentUser.Id;
+            bool isAdmin = User.IsInRole("Admin");
+            bool isManager = User.IsInRole("Manager");
+
+            if (!isOwner && !isAdmin && !isManager)
+            {
+                TempData["ErrorMessage"] = "You are not authorized to delete this post.";
+                return RedirectToRoute("PostDetails", new { postId = postId });
+            }
+
+            try
+            {
+                var success = await _postService.DeletePost(postId);
+                if (success)
+                {
+                    TempData["SuccessMessage"] = "Post deleted successfully.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Failed to delete the post.";
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                TempData["ErrorMessage"] = "An error occurred while deleting the post: " + ex.Message;
+            }
+            
+            // Redirect back to the topic page from which the post was deleted
+            return RedirectToAction("Index", "Topic", new { topicId = topicId });
+        }
+
+        [HttpGet("Posts/{postId:int}/Edit", Name = "EditPostGet")]
+        [Authorize]
+        public async Task<IActionResult> EditPost(int postId)
+        {
+            var post = await _postService.GetPostById(postId);
+            if (post == null)
+            {
+                TempData["ErrorMessage"] = "Post not found.";
+                return RedirectToAction("Index", "Home"); // Or a more appropriate error page
+            }
+
+            var topic = await _topicService.GetTopicByIdAsync(post.TopicId);
+            if (topic == null)
+            {
+                // This should ideally not happen if post.TopicId is valid
+                TempData["ErrorMessage"] = "Associated topic not found.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            bool isOwner = currentUser != null && post.UserId == currentUser.Id;
+            bool isAdmin = User.IsInRole("Admin");
+            bool isManager = User.IsInRole("Manager");
+
+            if (!isOwner && !isAdmin && !isManager)
+            {
+                TempData["ErrorMessage"] = "You are not authorized to edit this post.";
+                return RedirectToRoute("PostDetails", new { postId = postId });
+            }
+
+            var model = new EditPostViewModel
+            {
+                Id = post.Id,
+                Title = post.Title,
+                Content = post.Content,
+                TopicId = post.TopicId,
+                TopicTitle = topic.Title, // For display purposes in the view
+                OriginalPostTitlePreview = post.Title.Length > 50 ? post.Title.Substring(0, 50) + "..." : post.Title
+            };
+
+            return View("EditPost", model);
+        }
+
+        [HttpPost("Posts/{postId:int}/Edit", Name = "EditPostPost")]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditPost(int postId, EditPostViewModel model)
+        {
+            if (postId != model.Id)
+            {
+                TempData["ErrorMessage"] = "Post ID mismatch.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var postToUpdate = await _postService.GetPostById(postId);
+            if (postToUpdate == null)
+            {
+                TempData["ErrorMessage"] = "Post not found.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            bool isOwner = currentUser != null && postToUpdate.UserId == currentUser.Id;
+            bool isAdmin = User.IsInRole("Admin");
+            bool isManager = User.IsInRole("Manager");
+
+            if (!isOwner && !isAdmin && !isManager)
+            {
+                TempData["ErrorMessage"] = "You are not authorized to edit this post.";
+                // It's better to redirect to the post details page or an access denied page
+                return RedirectToRoute("PostDetails", new { postId = postId });
+            }
+            
+            // Re-fetch topic title if needed for the view in case of validation errors
+            var topic = await _topicService.GetTopicByIdAsync(postToUpdate.TopicId);
+            model.TopicTitle = topic?.Title ?? "N/A";
+            model.OriginalPostTitlePreview = postToUpdate.Title.Length > 50 ? postToUpdate.Title.Substring(0, 50) + "..." : postToUpdate.Title;
+
+
+            if (ModelState.IsValid)
+            {
+                var updateDto = new UpdatePostDTO
+                {
+                    Id = postId,
+                    Title = model.Title,
+                    Content = model.Content
+                    // NSFW status is not editable at the post level in this flow, it's inherited from topic
+                };
+
+                try
+                {
+                    var success = await _postService.UpdatePost(updateDto);
+                    if (success != null)
+                    {
+                        TempData["SuccessMessage"] = "Post updated successfully.";
+                        return RedirectToRoute("PostDetails", new { postId = postId });
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "Failed to update the post.";
+                        // ModelState.AddModelError(string.Empty, "Failed to update the post.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log the error
+                    TempData["ErrorMessage"] = "An error occurred while updating the post: " + ex.Message;
+                    // ModelState.AddModelError(string.Empty, "An error occurred: " + ex.Message);
+                }
+            }
+
+            // If ModelState is invalid or an error occurred, return to the edit view
+            return View("EditPost", model);
+        }
     }
 }

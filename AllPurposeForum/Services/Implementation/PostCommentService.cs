@@ -173,20 +173,71 @@ public class PostCommentService : IPostCommentService
             .Include(p => p.User)
             .Where(p => p.PostId == postId)
             .ToListAsync();
-        if (posts == null)
+        if (!posts.Any()) // Should be !posts.Any() or check count if expecting multiple
         {
-            throw new Exception("Post not found");
+            // Consider returning an empty list instead of throwing an exception
+            // if no comments for a post is a valid scenario.
+            // For now, keeping existing logic but noting it.
+            throw new Exception("Post comments not found for the given post ID.");
         }
 
-        return await Task.FromResult(posts.Select(p => new PostCommentDTO
+        return posts.Select(p => new PostCommentDTO
         {
             Id = p.Id,
             PostId = p.PostId,
             UserId = p.UserId,
             Content = p.Content,
-            UserName = p.User?.UserName ?? "Unknown User", // Added null check
+            UserName = p.User?.UserName ?? "Unknown User",
             CreatedAt = p.CreatedAt,
-            isApproved = p.Acceptence ?? false // Map Acceptence to isApproved
-        }).ToList());
+            isApproved = p.Acceptence ?? false
+        }).ToList();
+    }
+
+    public async Task<List<UnapprovedCommentDTO>> GetUnapprovedCommentsAsync()
+    {
+        var unapprovedComments = await _context.PostComments
+            .Where(pc => pc.Acceptence == false || pc.Acceptence == null)
+            .Include(pc => pc.User)
+            .Include(pc => pc.Post)
+                .ThenInclude(p => p.Topic)
+            .Select(pc => new UnapprovedCommentDTO
+            {
+                CommentId = pc.Id,
+                Text = pc.Content ?? string.Empty,
+                DateCreated = pc.CreatedAt ?? System.DateTime.MinValue,
+                AuthorUserName = pc.User == null ? "Unknown User" : (pc.User.UserName ?? "Unnamed User"),
+                PostId = pc.PostId,
+                PostTitle = pc.Post == null ? "Unknown Post" : (pc.Post.Title ?? "Untitled Post"),
+                TopicId = pc.Post == null || pc.Post.Topic == null ? 0 : pc.Post.Topic.Id,
+                TopicTitle = pc.Post == null || pc.Post.Topic == null ? "Unknown Topic" : (pc.Post.Topic.Title ?? "Untitled Topic"),
+                OriginalPostContentPreview = pc.Post == null || string.IsNullOrEmpty(pc.Post.Content)
+                                             ? "No content preview available"
+                                             : (pc.Post.Content.Length > 100 ? pc.Post.Content.Substring(0, 100) + "..." : pc.Post.Content)
+            })
+            .ToListAsync();
+
+        return unapprovedComments;
+    }
+
+    public async Task ApproveCommentAsync(int commentId)
+    {
+        var comment = await _context.PostComments.FindAsync(commentId);
+        if (comment == null)
+        {
+            throw new Exception("Comment not found.");
+        }
+        comment.Acceptence = true;
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task RejectCommentAsync(int commentId)
+    {
+        var comment = await _context.PostComments.FindAsync(commentId);
+        if (comment == null)
+        {
+            throw new Exception("Comment not found.");
+        }
+        _context.PostComments.Remove(comment);
+        await _context.SaveChangesAsync();
     }
 }

@@ -1,0 +1,81 @@
+@model IEnumerable<AllPurposeForum.Data.DTO.UnapprovedCommentDTO>
+
+@{ 
+    ViewData["Title"] = "Comment Moderation";
+    Layout = "_AdminManagerLayout"; // Assuming you want to use the admin layout
+}
+
+<h2><i class="fas fa-gavel"></i> Comment Moderation</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info" role="alert">
+        No comments are currently awaiting moderation.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Author</th>
+                    <th>Comment Text</th>
+                    <th>Date Created</th>
+                    <th>Topic</th>
+                    <th>Post</th>
+                    <th>Original Post Preview</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var comment in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => comment.AuthorUserName)</td>
+                        <td>@Html.DisplayFor(modelItem => comment.Text)</td>
+                        <td>@Html.DisplayFor(modelItem => comment.DateCreated)</td>
+                        <td>
+                            <a asp-controller="Topic" asp-action="Index" asp-route-id="@comment.TopicId">@Html.DisplayFor(modelItem => comment.TopicTitle)</a>
+                        </td>
+                        <td>
+                            <a asp-controller="Post" asp-action="Index" asp-route-id="@comment.PostId">@Html.DisplayFor(modelItem => comment.PostTitle)</a>
+                        </td>
+                        <td>
+                            <small class="text-muted"><em>@Html.DisplayFor(modelItem => comment.OriginalPostContentPreview)</em></small>
+                        </td>
+                        <td>
+                            <form asp-action="Approve" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="commentId" value="@comment.CommentId" />
+                                <button type="submit" class="btn btn-success btn-sm" title="Approve Comment">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                            </form>
+                            <form asp-action="Reject" method="post" class="d-inline ms-1">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="commentId" value="@comment.CommentId" />
+                                <button type="submit" class="btn btn-danger btn-sm" title="Reject Comment">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Optional: Add any client-side script if needed, for example, for confirmation dialogs.
+    </script>
+}

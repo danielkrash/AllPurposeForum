@@ -4,7 +4,7 @@ namespace AllPurposeForum.Services;
 
 public interface IPostService
 {
-    Task<CreatePostDTO> CreatePost(CreatePostDTO post);
+    Task<PostDTO> CreatePost(CreatePostDTO post); // Changed to CreatePostAsync and return PostDTO
     Task<PostDTO> GetPostById(int id);
     Task<List<PostDTO>> GetPostsByTopicId(int topicId);
     Task<List<PostDTO>> GetPostsByUserId(string userId);

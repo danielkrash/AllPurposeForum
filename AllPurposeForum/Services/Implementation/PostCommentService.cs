@@ -67,11 +67,11 @@ public class PostCommentService : IPostCommentService
         }
 
         // Predict sentiment using the ML model
-        var modelInput = new MLModelNewAttempt.ModelInput
+        var modelInput = new MLModel.ModelInput
         {
-            Sentence = postCommentDto.Content // Assuming 'Content' is the text to analyze
+            Sentiment = postCommentDto.Content // Assuming 'Content' is the text to analyze
         };
-        var prediction = MLModelNewAttempt.Predict(modelInput);
+        var prediction = MLModel.Predict(modelInput);
         
         // Use the utility function to determine if the comment is acceptable
         bool isAcceptable = Utils.IsCommentAcceptable(prediction.PredictedLabel);

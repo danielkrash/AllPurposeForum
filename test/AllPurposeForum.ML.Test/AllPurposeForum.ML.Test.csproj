@@ -31,7 +31,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Using Include="Xunit"/>
+        <Using Include="Xunit" />
     </ItemGroup>
 
     <ItemGroup>
@@ -39,8 +39,8 @@
       <ProjectReference Include="..\AllPurposeForum.Service.Test\AllPurposeForum.Service.Test.csproj" />
     </ItemGroup>
 
-  <ItemGroup Label="MLModelNewAttempt">
-    <None Include="MLModelNewAttempt.mlnet">
+  <ItemGroup Label="MLModel">
+    <None Include="MLModel.mlnet">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

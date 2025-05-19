@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.General;
 
-namespace AllPurposeForum.Api.Controllers;
+namespace AllPurposeForum.Web.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]

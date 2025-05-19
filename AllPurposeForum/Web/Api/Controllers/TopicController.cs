@@ -46,7 +46,7 @@ public class TopicController : ControllerBase
 
     [HttpPost("create")]
     // Consider adding [Authorize(Policy = "RequireAdministratorRole")] or other appropriate policy
-    public async Task<Results<Ok<CreateTopicDTO>, BadRequest<string>>> CreateTopic(
+    public async Task<Results<Ok<TopicDTO>, BadRequest<string>>> CreateTopic(
         [FromBody] CreateTopicDTO createTopicDto)
     {
         try

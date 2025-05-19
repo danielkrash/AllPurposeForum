@@ -18,7 +18,7 @@ public class PostController : ControllerBase
 
     [HttpPost("create")]
     /*[Authorize(Policy = "RequireAdministratorRole")]*/
-    public async Task<Results<Ok<CreatePostDTO>, BadRequest<string>>> CreatePost([FromBody] CreatePostDTO createPostDto)
+    public async Task<Results<Ok<PostDTO>, BadRequest<string>>> CreatePost([FromBody] CreatePostDTO createPostDto)
     {
         try
         {

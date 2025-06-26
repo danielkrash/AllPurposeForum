@@ -114,7 +114,6 @@ public class AuthController : ControllerBase
         [FromQuery] string? changedEmail)
     {
         if (await _userManager.FindByIdAsync(userId) is not { } user)
-            // We could respond with a 404 instead of a 401 like Identity UI, but that feels like unnecessary information.
             return TypedResults.Unauthorized();
         IdentityResult result;
 
@@ -128,8 +127,6 @@ public class AuthController : ControllerBase
         }
         else
         {
-            // As with Identity UI, email and user name are one and the same. So when we update the email,
-            // we need to update the user name.
             result = await _userManager.ChangeEmailAsync(user, changedEmail, code);
 
             if (result.Succeeded) result = await _userManager.SetUserNameAsync(user, changedEmail);
@@ -152,8 +149,6 @@ public class AuthController : ControllerBase
 
         await _emailSender.SendPasswordResetCodeAsync(user, request.Email,
             HtmlEncoder.Default.Encode(code));
-        // Send email with the link
-        // await _emailSender.SendEmailAsync(request.Email, "Reset Password", $"Please reset your password by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
         return TypedResults.Ok();
     }
 
@@ -163,8 +158,6 @@ public class AuthController : ControllerBase
         var user = await _userManager.FindByEmailAsync(request.Email);
 
         if (user is null || !await _userManager.IsEmailConfirmedAsync(user))
-            // Don't reveal that the user does not exist or is not confirmed, so don't return a 200 if we would have
-            // returned a 400 for an invalid code given a valid user email.
             return Utils.CreateValidationProblem(IdentityResult.Failed(_userManager.ErrorDescriber.InvalidToken()));
 
         IdentityResult result;

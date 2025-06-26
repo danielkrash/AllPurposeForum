@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using AllPurposeForum.Web.Models;
-using AllPurposeForum.Services; // Add this using directive
+using AllPurposeForum.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AllPurposeForum.Web.Controllers
@@ -8,16 +8,14 @@ namespace AllPurposeForum.Web.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly ITopicService _topicService; // Add ITopicService field
-
-        // Modify constructor to inject ITopicService
+        private readonly ITopicService _topicService;
+        
         public HomeController(ILogger<HomeController> logger, ITopicService topicService)
         {
             _logger = logger;
             _topicService = topicService;
         }
-
-        // Modify Index action to fetch and pass topics to the view
+        
         public async Task<IActionResult> Index()
         {
             var topics = await _topicService.GetAllTopicsAsync();

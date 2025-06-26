@@ -8,22 +8,21 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Linq;
 using System.Threading.Tasks;
-using AllPurposeForum.Helpers; // Add this line
+using AllPurposeForum.Helpers;
 
-namespace AllPurposeForum.Web.Controllers // Ensured namespace is correct
+namespace AllPurposeForum.Web.Controllers
 {
     public class TopicController : Controller
     {
         private readonly ITopicService _topicService;
         private readonly IPostService _postService;
-        private readonly UserManager<ApplicationUser> _userManager; // Added UserManager
-
-        // Updated constructor to include UserManager
+        private readonly UserManager<ApplicationUser> _userManager;
+        
         public TopicController(ITopicService topicService, IPostService postService, UserManager<ApplicationUser> userManager)
         {
             _topicService = topicService;
             _postService = postService;
-            _userManager = userManager; // Initialize UserManager
+            _userManager = userManager;
         }
 
         [HttpGet("Topics/{topicId:int}", Name = "TopicDetails")]
@@ -33,7 +32,7 @@ namespace AllPurposeForum.Web.Controllers // Ensured namespace is correct
             if (topic == null)
             {
                 Response.StatusCode = 404;
-                return View("NotFound"); // Return the custom NotFound view
+                return View("NotFound");
             }
 
             var postsFromService = await _postService.GetPostsByTopicId(topicId);
@@ -46,8 +45,8 @@ namespace AllPurposeForum.Web.Controllers // Ensured namespace is correct
                 CreatedAtFormatted = Utils.TimeAgo(p.CreatedAt),
                 CommentsCount = p.CommentsCount,
                 TopicId = p.TopicId,
-                ContentPreview = p.Content.Length > 100 ? p.Content.Substring(0, 100) + "..." : p.Content, // Simple preview
-                UserId = p.UserId // Populate UserId
+                ContentPreview = p.Content.Length > 100 ? p.Content.Substring(0, 100) + "..." : p.Content,
+                UserId = p.UserId 
             }).ToList();
 
             var viewModel = new TopicDetailViewModel
@@ -63,7 +62,7 @@ namespace AllPurposeForum.Web.Controllers // Ensured namespace is correct
         [Authorize]
         public IActionResult Create()
         {
-            return View(new CreateTopicViewModel()); // Pass a new view model
+            return View(new CreateTopicViewModel());
         }
 
         // POST: Topic/Create
@@ -74,7 +73,7 @@ namespace AllPurposeForum.Web.Controllers // Ensured namespace is correct
         {
             if (ModelState.IsValid)
             {
-                var userId = _userManager.GetUserId(User); // More robust way to get UserId
+                var userId = _userManager.GetUserId(User);
                 if (string.IsNullOrEmpty(userId))
                 {
                     ModelState.AddModelError(string.Empty, "User not found. Please log in again.");
@@ -86,18 +85,16 @@ namespace AllPurposeForum.Web.Controllers // Ensured namespace is correct
                     Title = model.Title,
                     Description = model.Description,
                     UserId = userId,
-                    Nsfw = model.isNswf // Map the Nsfw property
+                    Nsfw = model.isNswf
                 };
 
                 try
                 {
                     var createdTopic = await _topicService.CreateTopicAsync(createTopicDto);
-                    // Redirect to the newly created topic's detail page
                     return RedirectToRoute("TopicDetails", new { topicId = createdTopic.Id }); 
                 }
                 catch (Exception ex)
                 {
-                    // Log the error (using ILogger or your preferred logging mechanism)
                     ModelState.AddModelError(string.Empty, "An error occurred while creating the topic. " + ex.Message);
                 }
             }
@@ -134,7 +131,6 @@ namespace AllPurposeForum.Web.Controllers // Ensured namespace is correct
             }
             catch (Exception ex)
             {
-                // Log the error
                 TempData["ErrorMessage"] = "An error occurred while deleting the topic: " + ex.Message;
             }
 
@@ -157,8 +153,7 @@ namespace AllPurposeForum.Web.Controllers // Ensured namespace is correct
             bool isOwner = currentUser != null && topicDto.UserId == currentUser.Id;
             bool isAdmin = User.IsInRole("Admin");
             bool isManager = User.IsInRole("Manager");
-
-            // Only owner, admin, or manager can edit
+            
             if (!isOwner && !isAdmin && !isManager)
             {
                 TempData["ErrorMessage"] = "You are not authorized to edit this topic.";
@@ -203,7 +198,6 @@ namespace AllPurposeForum.Web.Controllers // Ensured namespace is correct
             if (!isOwner && !isAdmin && !isManager)
             {
                 TempData["ErrorMessage"] = "You are not authorized to edit this topic.";
-                // Potentially redirect to topic details or home
                 return RedirectToAction("Index", "Topic", new { topicId = topicId });
             }
 
@@ -218,13 +212,12 @@ namespace AllPurposeForum.Web.Controllers // Ensured namespace is correct
 
                 try
                 {
-                    await _topicService.UpdateTopicAsync(updateTopicDto, topicId); // Corrected parameter order
+                    await _topicService.UpdateTopicAsync(updateTopicDto, topicId);
                     TempData["SuccessMessage"] = "Topic updated successfully.";
                     return RedirectToRoute("TopicDetails", new { topicId = topicId });
                 }
                 catch (Exception ex)
                 {
-                    // Log the error
                     ModelState.AddModelError(string.Empty, "An error occurred while updating the topic: " + ex.Message);
                 }
             }

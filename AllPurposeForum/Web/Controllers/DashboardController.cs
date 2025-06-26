@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity; // Added for UserManager
 using AllPurposeForum.Data; // Added for ApplicationDbContext
 using System.Linq; // Added for CountAsync and other LINQ methods
 using System.Threading.Tasks; // Added for Task
-using Microsoft.EntityFrameworkCore; // Added for ToListAsync, CountAsync
+using Microsoft.EntityFrameworkCore;
 
 namespace AllPurposeForum.Web.Controllers
 {
@@ -14,7 +14,7 @@ namespace AllPurposeForum.Web.Controllers
     public class DashboardController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ApplicationDbContext _context; // Using DbContext directly for simplicity here
+        private readonly ApplicationDbContext _context;
 
         public DashboardController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {

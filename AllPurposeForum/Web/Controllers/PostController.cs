@@ -1,4 +1,4 @@
-// Filepath: c:\Users\danik\source\repos\AllPurposeForum\AllPurposeForum\Controllers\PostController.cs
+
 using AllPurposeForum.Services;
 using AllPurposeForum.Web.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +9,7 @@ using AllPurposeForum.Data.DTO;
 using Microsoft.AspNetCore.Identity;
 using AllPurposeForum.Data.Models;
 using System.Security.Claims; // Added for User.FindFirstValue
-using Microsoft.AspNetCore.Authorization; // Added for [Authorize]
+using Microsoft.AspNetCore.Authorization;
 
 namespace AllPurposeForum.Web.Controllers
 {
@@ -18,20 +18,19 @@ namespace AllPurposeForum.Web.Controllers
         private readonly IPostService _postService;
         private readonly IPostCommentService _postCommentService;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ITopicService _topicService; // Added ITopicService
-
-        // Updated constructor to include ITopicService
+        private readonly ITopicService _topicService;
+        
         public PostController(IPostService postService, IPostCommentService postCommentService, UserManager<ApplicationUser> userManager, ITopicService topicService)
         {
             _postService = postService;
             _postCommentService = postCommentService;
             _userManager = userManager;
-            _topicService = topicService; // Initialize ITopicService
+            _topicService = topicService;
         }
 
         // GET: Topic/{topicId:int}/Post/Create
         [HttpGet("Topic/{topicId:int}/Post/Create", Name = "CreatePost")]
-        [Authorize] // Ensure only authenticated users can access
+        [Authorize]
         public async Task<IActionResult> Create(int topicId)
         {
             var topic = await _topicService.GetTopicByIdAsync(topicId);
@@ -50,18 +49,18 @@ namespace AllPurposeForum.Web.Controllers
 
         // POST: Topic/{topicId:int}/Post/Create
         [HttpPost("Topic/{topicId:int}/Post/Create")]
-        [Authorize] // Ensure only authenticated users can post
+        [Authorize]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(int topicId, CreatePostViewModel model)
         {
-            var topic = await _topicService.GetTopicByIdAsync(topicId); // Re-fetch topic to ensure it exists
+            var topic = await _topicService.GetTopicByIdAsync(topicId);
             if (topic == null)
             {
                 ModelState.AddModelError(string.Empty, "Topic not found.");
-                model.TopicTitle = "Error: Topic not found"; // Provide a title for the view
-                return View(model); // Return with error
+                model.TopicTitle = "Error: Topic not found";
+                return View(model);
             }
-            model.TopicTitle = topic.Title; // Ensure TopicTitle is set for the view if returning due to error
+            model.TopicTitle = topic.Title;
 
             if (ModelState.IsValid)
             {
@@ -78,22 +77,20 @@ namespace AllPurposeForum.Web.Controllers
                     UserId = userId,
                     Title = model.Title,
                     Content = model.Content,
-                    Nsfw = topic.Nsfw // Inherit NSFW status from topic
+                    Nsfw = topic.Nsfw
                 };
 
                 try
                 {
                     var createdPost = await _postService.CreatePost(createPostDto);
-                    // Redirect to the newly created post's detail page
                     return RedirectToRoute("PostDetails", new { postId = createdPost.Id });
                 }
                 catch (Exception ex)
                 {
-                    // Log the error (using ILogger or your preferred logging mechanism)
                     ModelState.AddModelError(string.Empty, "An error occurred while creating the post: " + ex.Message);
                 }
             }
-            return View(model); // If model state is invalid, return to the view with errors
+            return View(model);
         }
 
         [HttpGet("Posts/{postId:int}", Name = "PostDetails")]
@@ -103,7 +100,7 @@ namespace AllPurposeForum.Web.Controllers
             if (post == null)
             {
                 Response.StatusCode = 404;
-                return View("NotFound"); // Return the custom NotFound view
+                return View("NotFound");
             }
 
             var allComments = await _postCommentService.GetPostCommentsByPostIdAsync(postId);
@@ -111,11 +108,11 @@ namespace AllPurposeForum.Web.Controllers
             List<PostCommentDTO> commentsToDisplay;
             if (User.IsInRole("Manager") || User.IsInRole("Admin"))
             {
-                commentsToDisplay = allComments.ToList(); // Managers see all comments
+                commentsToDisplay = allComments.ToList();
             }
             else
             {
-                commentsToDisplay = allComments.Where(c => c.isApproved).ToList(); // Others see only approved
+                commentsToDisplay = allComments.Where(c => c.isApproved).ToList();
             }
 
             var commentViewModels = commentsToDisplay.Select(c => new PostCommentViewModel
@@ -125,7 +122,7 @@ namespace AllPurposeForum.Web.Controllers
                 Content = c.Content,
                 CreatedAtFormatted = Utils.TimeAgo(c.CreatedAt),
                 IsApproved = c.isApproved,
-                UserId = c.UserId // Added UserId
+                UserId = c.UserId
             }).ToList();
 
             var viewModel = new PostDetailViewModel
@@ -163,18 +160,15 @@ namespace AllPurposeForum.Web.Controllers
                     await _postCommentService.CreatePostCommentAsync(createCommentDto);
                     return RedirectToRoute("PostDetails", new { postId = postId });
                 }
-                catch (Exception) // Removed unused 'ex'
+                catch (Exception)
                 {
-                    // TODO: Log the exception
                     ModelState.AddModelError(string.Empty, "An unexpected error occurred while trying to post your comment. Please try again.");
                 }
             }
-
-            // If ModelState is invalid or an exception occurred, re-display the page with current data and errors
+            
             var post = await _postService.GetPostById(postId);
             if (post == null)
             {
-                // This case should ideally not be reached if the user is on a valid post page
                 return NotFound("The post you are trying to comment on was not found.");
             }
 
@@ -182,11 +176,11 @@ namespace AllPurposeForum.Web.Controllers
             List<PostCommentDTO> commentsToDisplayForAddComment;
             if (User.IsInRole("Manager"))
             {
-                commentsToDisplayForAddComment = allCommentsForAddComment.ToList(); // Managers see all comments
+                commentsToDisplayForAddComment = allCommentsForAddComment.ToList();
             }
             else
             {
-                commentsToDisplayForAddComment = allCommentsForAddComment.Where(c => c.isApproved).ToList(); // Others see only approved
+                commentsToDisplayForAddComment = allCommentsForAddComment.Where(c => c.isApproved).ToList();
             }
 
             var commentViewModelsForAddComment = commentsToDisplayForAddComment.Select(c => new PostCommentViewModel
@@ -196,30 +190,29 @@ namespace AllPurposeForum.Web.Controllers
                 Content = c.Content,
                 CreatedAtFormatted = Utils.TimeAgo(c.CreatedAt),
                 IsApproved = c.isApproved,
-                UserId = c.UserId // Added UserId
+                UserId = c.UserId
             }).ToList();
 
             var viewModel = new PostDetailViewModel
             {
                 Post = post,
-                Comments = commentViewModelsForAddComment, // Use the correctly filtered/unfiltered list
-                NewComment = model, // Pass back the model with its (potentially invalid) data and validation errors
+                Comments = commentViewModelsForAddComment,
+                NewComment = model,
                 PostCreatedAtFormatted = Utils.TimeAgo(post.CreatedAt)
             };
 
-            return View("Index", viewModel); // Explicitly return the Index view
+            return View("Index", viewModel);
         }
 
         [HttpPost]
-        [Authorize] // Ensure only authorized users can delete
+        [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeletePost(int postId, int topicId) // Added topicId to redirect back correctly
+        public async Task<IActionResult> DeletePost(int postId, int topicId)
         {
             var post = await _postService.GetPostById(postId);
             if (post == null)
             {
                 TempData["ErrorMessage"] = "Post not found.";
-                // Redirect to topic page if topicId is valid, otherwise to home
                 return topicId > 0 ? RedirectToAction("Index", "Topic", new { topicId = topicId }) : RedirectToAction("Index", "Home");
             }
 
@@ -248,11 +241,9 @@ namespace AllPurposeForum.Web.Controllers
             }
             catch (Exception ex)
             {
-                // Log the error
                 TempData["ErrorMessage"] = "An error occurred while deleting the post: " + ex.Message;
             }
             
-            // Redirect back to the topic page from which the post was deleted
             return RedirectToAction("Index", "Topic", new { topicId = topicId });
         }
 
@@ -264,13 +255,12 @@ namespace AllPurposeForum.Web.Controllers
             if (post == null)
             {
                 TempData["ErrorMessage"] = "Post not found.";
-                return RedirectToAction("Index", "Home"); // Or a more appropriate error page
+                return RedirectToAction("Index", "Home");
             }
 
             var topic = await _topicService.GetTopicByIdAsync(post.TopicId);
             if (topic == null)
             {
-                // This should ideally not happen if post.TopicId is valid
                 TempData["ErrorMessage"] = "Associated topic not found.";
                 return RedirectToAction("Index", "Home");
             }
@@ -292,7 +282,7 @@ namespace AllPurposeForum.Web.Controllers
                 Title = post.Title,
                 Content = post.Content,
                 TopicId = post.TopicId,
-                TopicTitle = topic.Title, // For display purposes in the view
+                TopicTitle = topic.Title,
                 OriginalPostTitlePreview = post.Title.Length > 50 ? post.Title.Substring(0, 50) + "..." : post.Title
             };
 
@@ -325,11 +315,9 @@ namespace AllPurposeForum.Web.Controllers
             if (!isOwner && !isAdmin && !isManager)
             {
                 TempData["ErrorMessage"] = "You are not authorized to edit this post.";
-                // It's better to redirect to the post details page or an access denied page
                 return RedirectToRoute("PostDetails", new { postId = postId });
             }
             
-            // Re-fetch topic title if needed for the view in case of validation errors
             var topic = await _topicService.GetTopicByIdAsync(postToUpdate.TopicId);
             model.TopicTitle = topic?.Title ?? "N/A";
             model.OriginalPostTitlePreview = postToUpdate.Title.Length > 50 ? postToUpdate.Title.Substring(0, 50) + "..." : postToUpdate.Title;
@@ -356,18 +344,14 @@ namespace AllPurposeForum.Web.Controllers
                     else
                     {
                         TempData["ErrorMessage"] = "Failed to update the post.";
-                        // ModelState.AddModelError(string.Empty, "Failed to update the post.");
                     }
                 }
                 catch (Exception ex)
                 {
-                    // Log the error
                     TempData["ErrorMessage"] = "An error occurred while updating the post: " + ex.Message;
-                    // ModelState.AddModelError(string.Empty, "An error occurred: " + ex.Message);
                 }
             }
-
-            // If ModelState is invalid or an error occurred, return to the edit view
+            
             return View("EditPost", model);
         }
     }

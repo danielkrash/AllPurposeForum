@@ -1,12 +1,15 @@
 ﻿using AllPurposeForum.Data.DTO;
 using AllPurposeForum.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AllPurposeForum.Web.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PostController : ControllerBase
 {
     private readonly IPostService _postService;
@@ -17,7 +20,6 @@ public class PostController : ControllerBase
     }
 
     [HttpPost("create")]
-    /*[Authorize(Policy = "RequireAdministratorRole")]*/
     public async Task<Results<Ok<PostDTO>, BadRequest<string>>> CreatePost([FromBody] CreatePostDTO createPostDto)
     {
         try
@@ -104,14 +106,30 @@ public class PostController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    // Add authorization if needed, e.g., only post owner or admin can update
-    public async Task<Results<Ok<UpdatePostDTO>, NotFound<string>, BadRequest<string>>> UpdatePost(int id,
+    public async Task<Results<Ok<UpdatePostDTO>, NotFound<string>, BadRequest<string>, ForbidHttpResult>> UpdatePost(int id,
         [FromBody] UpdatePostDTO updatePostDto)
     {
         if (id != updatePostDto.Id) return TypedResults.BadRequest("Post ID in URL must match Post ID in body.");
 
         try
         {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return TypedResults.Forbid();
+            }
+
+            var isAdminOrModerator = User.IsInRole("Admin") || User.IsInRole("Moderator");
+            
+            if (!isAdminOrModerator)
+            {
+                var existingPost = await _postService.GetPostById(id);
+                if (existingPost?.UserId != currentUserId)
+                {
+                    return TypedResults.Forbid();
+                }
+            }
+
             var updatedPost = await _postService.UpdatePost(updatePostDto);
             return TypedResults.Ok(updatedPost);
         }
@@ -125,16 +143,31 @@ public class PostController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    // Add authorization if needed, e.g., only post owner or admin can delete
-    public async Task<Results<Ok, NotFound<string>, BadRequest<string>>> DeletePost(int id)
+    public async Task<Results<Ok, NotFound<string>, BadRequest<string>, ForbidHttpResult>> DeletePost(int id)
     {
         try
         {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return TypedResults.Forbid();
+            }
+
+            var isAdminOrModerator = User.IsInRole("Admin") || User.IsInRole("Moderator");
+            
+            if (!isAdminOrModerator)
+            {
+                var existingPost = await _postService.GetPostById(id);
+                if (existingPost?.UserId != currentUserId)
+                {
+                    return TypedResults.Forbid();
+                }
+            }
+
             var result = await _postService.DeletePost(id);
-            if (result) // Assuming DeletePost returns true on success
+            if (result)
                 return TypedResults.Ok();
 
-            // This path might indicate a failure that wasn't an exception (e.g., service returns false)
             return TypedResults.BadRequest("Failed to delete post.");
         }
         catch (Exception ex)

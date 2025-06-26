@@ -5,11 +5,11 @@ using AllPurposeForum.Data.Models;
 using System.Linq;
 using System.Threading.Tasks;
 using AllPurposeForum.Web.Models; // Assuming your ViewModels are here
-using Microsoft.EntityFrameworkCore; // For ToListAsync()
+using Microsoft.EntityFrameworkCore; 
 
 namespace AllPurposeForum.Web.Controllers
 {
-    [Authorize(Roles = "Admin")] // Only Admins can access this controller
+    [Authorize(Roles = "Admin")]
     public class UserManagementController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -41,7 +41,6 @@ namespace AllPurposeForum.Web.Controllers
 
             if (!string.IsNullOrEmpty(sortByRole))
             {
-                // Ensure Roles is not null before trying to access FirstOrDefault
                 userViewModels = userViewModels.OrderBy(u => u.Roles?.FirstOrDefault()).ToList();
                 if (sortByRole == "role_desc")
                 {
@@ -50,7 +49,6 @@ namespace AllPurposeForum.Web.Controllers
             }
             else
             {
-                // Default sort by username if no role sort is specified
                 userViewModels = userViewModels.OrderBy(u => u.UserName).ToList();
             }
 
@@ -107,7 +105,6 @@ namespace AllPurposeForum.Web.Controllers
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
-            // If we got this far, something failed, redisplay form
             model.Roles = await _roleManager.Roles.Select(r => r.Name).ToListAsync() ?? new List<string?>();
             return View(model);
         }
@@ -156,24 +153,21 @@ namespace AllPurposeForum.Web.Controllers
 
                 user.UserName = model.UserName;
                 user.Email = model.Email;
-                // Update other user properties if needed
 
                 var result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
-                    // Add errors to ModelState
                     foreach (var error in result.Errors)
                     {
                         ModelState.AddModelError(string.Empty, error.Description);
                     }
-                    // Repopulate roles for the view if returning due to error
                     model.Roles = await _roleManager.Roles.Select(r => r.Name).ToListAsync() ?? new List<string?>();
                     return View(model);
                 }
 
                 // Role management
                 var currentRoles = await _userManager.GetRolesAsync(user);
-                var userRolesModel = model.UserRoles ?? new List<string?>(); // Ensure not null
+                var userRolesModel = model.UserRoles ?? new List<string?>();
 
                 var rolesToRemove = currentRoles.Except(userRolesModel.Where(r => r != null).Select(r => r!)).ToList();
                 var rolesToAdd = userRolesModel.Where(r => r != null).Select(r => r!).Except(currentRoles).ToList();
@@ -211,8 +205,7 @@ namespace AllPurposeForum.Web.Controllers
                 TempData["ErrorMessage"] = "User not found.";
                 return RedirectToAction(nameof(Index));
             }
-
-            // Prevent admin from deleting themselves (optional, but good practice)
+            
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser != null && currentUser.Id == user.Id)
             {

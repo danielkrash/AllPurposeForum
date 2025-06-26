@@ -1,12 +1,15 @@
 ﻿using AllPurposeForum.Data.DTO;
 using AllPurposeForum.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AllPurposeForum.Web.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class TopicController : ControllerBase
 {
     private readonly ITopicService _topicService;
@@ -26,7 +29,7 @@ public class TopicController : ControllerBase
         }
         catch (Exception ex)
         {
-            return TypedResults.NotFound(ex.Message); // Or BadRequest depending on expected error type
+            return TypedResults.NotFound(ex.Message);
         }
     }
 
@@ -45,7 +48,6 @@ public class TopicController : ControllerBase
     }
 
     [HttpPost("create")]
-    // Consider adding [Authorize(Policy = "RequireAdministratorRole")] or other appropriate policy
     public async Task<Results<Ok<TopicDTO>, BadRequest<string>>> CreateTopic(
         [FromBody] CreateTopicDTO createTopicDto)
     {
@@ -61,14 +63,28 @@ public class TopicController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    // Consider adding authorization, e.g., only topic owner or admin can update
-    public async Task<Results<Ok<TopicDTO>, NotFound<string>, BadRequest<string>>> UpdateTopic(int id,
+    public async Task<Results<Ok<TopicDTO>, NotFound<string>, BadRequest<string>, ForbidHttpResult>> UpdateTopic(int id,
         [FromBody] UpdateTopicDTO updateTopicDto)
     {
-        // It's good practice to ensure the ID in the route matches the ID in the DTO if present,
-        // however, UpdateTopicDTO doesn't have an Id. The service method takes 'id' separately.
         try
         {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return TypedResults.Forbid();
+            }
+
+            var isAdminOrModerator = User.IsInRole("Admin") || User.IsInRole("Moderator");
+            
+            if (!isAdminOrModerator)
+            {
+                var existingTopic = await _topicService.GetTopicByIdAsync(id);
+                if (existingTopic?.UserId != currentUserId)
+                {
+                    return TypedResults.Forbid();
+                }
+            }
+
             var updatedTopic = await _topicService.UpdateTopicAsync(updateTopicDto, id);
             return TypedResults.Ok(updatedTopic);
         }
@@ -82,15 +98,31 @@ public class TopicController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    // Consider adding authorization, e.g., only topic owner or admin can delete
-    public async Task<Results<Ok, NotFound<string>, BadRequest<string>>> DeleteTopic(int id)
+    public async Task<Results<Ok, NotFound<string>, BadRequest<string>, ForbidHttpResult>> DeleteTopic(int id)
     {
         try
         {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return TypedResults.Forbid();
+            }
+
+            var isAdminOrModerator = User.IsInRole("Admin") || User.IsInRole("Moderator");
+            
+            if (!isAdminOrModerator)
+            {
+                var existingTopic = await _topicService.GetTopicByIdAsync(id);
+                if (existingTopic?.UserId != currentUserId)
+                {
+                    return TypedResults.Forbid();
+                }
+            }
+
             var result = await _topicService.DeleteTopicAsync(id);
             if (result) return TypedResults.Ok();
 
-            return TypedResults.BadRequest("Failed to delete topic."); // Or NotFound if preferred for this case
+            return TypedResults.BadRequest("Failed to delete topic.");
         }
         catch (Exception ex)
         {

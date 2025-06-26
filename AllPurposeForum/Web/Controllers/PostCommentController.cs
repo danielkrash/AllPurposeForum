@@ -124,10 +124,9 @@ namespace AllPurposeForum.Web.Controllers
                 Id = comment.Id,
                 PostId = comment.PostId,
                 Content = comment.Content,
-                IsApproved = comment.isApproved, // Keep passing this to the view for the hidden field
+                IsApproved = comment.isApproved,
                 PostTitle = post.Title,
                 OriginalCommentContentPreview = comment.Content.Length > 100 ? comment.Content.Substring(0, 100) + "..." : comment.Content
-                // CanChangeApprovalStatus is removed
             };
 
             return View(model);
@@ -144,9 +143,7 @@ namespace AllPurposeForum.Web.Controllers
                     var post = await _postService.GetPostById(originalCommentForPost.PostId);
                     if (post != null) model.PostTitle = post.Title;
                     model.OriginalCommentContentPreview = originalCommentForPost.Content.Length > 100 ? originalCommentForPost.Content.Substring(0, 100) + "..." : originalCommentForPost.Content;
-                    // model.IsApproved will be retained from the hidden field if needed for re-display
                 }
-                // CanChangeApprovalStatus logic removed
                 return View(model);
             }
 
@@ -157,9 +154,9 @@ namespace AllPurposeForum.Web.Controllers
             }
 
             var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null) // Added null check for currentUser
+            if (currentUser == null)
             {
-                return Challenge(); // Or Forbid(), or redirect to login
+                return Challenge();
             }
             bool isAuthor = commentToUpdate.UserId == currentUser.Id;
             bool isManager = User.IsInRole("Manager");
@@ -169,14 +166,13 @@ namespace AllPurposeForum.Web.Controllers
             {
                 return Forbid();
             }
-
-            // ML Model Prediction for approval status
+            
             var predictionResult = MLModel.Predict(new MLModel.ModelInput { Sentiment = model.Content ?? string.Empty });
             bool newIsApprovedStatus = Utils.IsCommentAcceptable(predictionResult.PredictedLabel);
 
             var updateDto = new UpdatePostCommentDTO
             {
-                Content = model.Content ?? string.Empty, // Added null check for model.Content
+                Content = model.Content ?? string.Empty,
                 IsApproved = newIsApprovedStatus
             };
 

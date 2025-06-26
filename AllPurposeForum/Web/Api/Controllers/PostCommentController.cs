@@ -1,12 +1,15 @@
 ﻿using AllPurposeForum.Data.DTO;
 using AllPurposeForum.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AllPurposeForum.Web.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class PostCommentController : ControllerBase
 {
     private readonly IPostCommentService _postCommentService;
@@ -38,8 +41,6 @@ public class PostCommentController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Assuming "Post not found" or similar if list is empty and service throws.
-            // Adjust if service returns empty list instead of throwing for "not found".
             return TypedResults.NotFound(ex.Message);
         }
     }
@@ -59,7 +60,6 @@ public class PostCommentController : ControllerBase
     }
 
     [HttpPost("create")]
-    // Consider adding [Authorize] or a specific policy
     public async Task<Results<Ok<CreatePostCommentDTO>, BadRequest<string>>> CreatePostComment(
         [FromBody] CreatePostCommentDTO createCommentDto)
     {
@@ -75,15 +75,29 @@ public class PostCommentController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    // Consider adding [Authorize] or a specific policy (e.g., only comment owner or admin)
-    public async Task<Results<Ok<PostCommentDTO>, NotFound<string>, BadRequest<string>>> UpdatePostComment(int id,
+    public async Task<Results<Ok<PostCommentDTO>, NotFound<string>, BadRequest<string>, ForbidHttpResult>> UpdatePostComment(int id,
         [FromBody] UpdatePostCommentDTO updateCommentDto)
     {
-        // Optional: Add check if id in route matches an Id property in updateCommentDto if it exists.
-        // if (id != updateCommentDto.Id) return TypedResults.BadRequest("ID mismatch");
 
         try
         {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return TypedResults.Forbid();
+            }
+
+            var isAdminOrModerator = User.IsInRole("Admin") || User.IsInRole("Moderator");
+            
+            if (!isAdminOrModerator)
+            {
+                var existingComment = await _postCommentService.GetPostCommentByIdAsync(id);
+                if (existingComment.UserId != currentUserId)
+                {
+                    return TypedResults.Forbid();
+                }
+            }
+
             var updatedComment = await _postCommentService.UpdatePostCommentAsync(updateCommentDto, id);
             return TypedResults.Ok(updatedComment);
         }
@@ -97,15 +111,30 @@ public class PostCommentController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    // Consider adding [Authorize] or a specific policy (e.g., only comment owner or admin)
-    public async Task<Results<Ok, NotFound<string>, BadRequest<string>>> DeletePostComment(int id)
+    public async Task<Results<Ok, NotFound<string>, BadRequest<string>, ForbidHttpResult>> DeletePostComment(int id)
     {
         try
         {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return TypedResults.Forbid();
+            }
+
+            var isAdminOrModerator = User.IsInRole("Admin") || User.IsInRole("Moderator");
+            
+            if (!isAdminOrModerator)
+            {
+                var existingComment = await _postCommentService.GetPostCommentByIdAsync(id);
+                if (existingComment.UserId != currentUserId)
+                {
+                    return TypedResults.Forbid();
+                }
+            }
+
             var result = await _postCommentService.DeletePostCommentAsync(id);
             if (result) return TypedResults.Ok();
-
-            // This case might be hit if DeletePostCommentAsync returns false for a non-exception failure
+            
             return TypedResults.BadRequest("Failed to delete post comment.");
         }
         catch (Exception ex)
